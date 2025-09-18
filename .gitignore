@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules
+.next
+out
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Docker
+*.local.yml
+
+# VS Code
+.vscode/
+
+# Misc
+.env.local
+.env.development
+.env.production
