@@ -11,38 +11,16 @@ export default function Home() {
             <UploadCard />
           </section>
 
-          {/* Quick Search */}
+          {/* Quick Search Section */}
           <section className="card p-6">
             <h2 className="text-lg font-semibold mb-3">Quick search</h2>
-            <form className="space-y-3">
+            <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
               <input className="input" placeholder="Search text…" />
 
-              {/* Date parts */}
               <div className="grid grid-cols-3 gap-3">
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  max={12}
-                  placeholder="MM"
-                  aria-label="Month"
-                />
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  max={31}
-                  placeholder="DD"
-                  aria-label="Day"
-                />
-                <input
-                  className="input"
-                  type="number"
-                  min={1900}
-                  max={2100}
-                  placeholder="YYYY"
-                  aria-label="Year"
-                />
+                <input className="input" type="number" placeholder="MM" aria-label="Month" />
+                <input className="input" type="number" placeholder="DD" aria-label="Day" />
+                <input className="input" type="number" placeholder="YYYY" aria-label="Year" />
               </div>
 
               <select className="input">
