@@ -15,6 +15,17 @@ app.add_middleware(
 
 app.include_router(upload.router, prefix="/api", tags=["upload"])
 
+@app.get("/test-supabase")
+def test_supabase():
+    from database import get_supabase_client
+    try:
+        supabase = get_supabase_client()
+        # Try to query the documents table
+        result = supabase.table("documents").select("*").limit(1).execute()
+        return {"status": "success", "message": "Supabase connected!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.get("/")
 def read_root():
     return {"message": "Backend is running"}
