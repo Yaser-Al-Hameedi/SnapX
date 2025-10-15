@@ -1,6 +1,9 @@
 from supabase import create_client, Client
 from config import SUPABASE_URL, SUPABASE_SERVICE_KEY, STORAGE_BUCKET
 
+print(f"Connecting to: {SUPABASE_URL}")
+print(f"Service key loaded: {'Yes' if SUPABASE_SERVICE_KEY else 'No'}")
+
 # Initialize Supabase client with service role key (for backend operations)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
