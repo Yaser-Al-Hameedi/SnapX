@@ -4,6 +4,8 @@ from database import get_supabase_client, upload_file_to_storage
 import os
 import shutil
 from datetime import datetime
+from services import ocr_service
+import uuid
 
 router = APIRouter() # This is for all upload-related enpoints
 
@@ -22,9 +24,8 @@ async def upload_document(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
-    # Step 2: OCR - Extract text (we'll implement this in ocr_service.py)
-    # extracted_text = ocr_service.extract_text(temp_file_path)
-    extracted_text = "Placeholder extracted text"
+    
+    extracted_text = ocr_service.extract_text(temp_file_path)
     
     # Step 3: AI - Extract fields (we'll implement this in ai_service.py)
     # ai_data = ai_service.extract_fields(extracted_text)
@@ -36,7 +37,8 @@ async def upload_document(file: UploadFile = File(...)):
     }
 
     #Preparing final storage path
-    storage_path = f"{ai_data['document_type']}/{datetime.now().year}/{datetime.now().month}/{file.filename}"
+    unique_filename = f"{uuid.uuid4()}_{file.filename}"
+    storage_path = f"{ai_data['document_type']}/{datetime.now().year}/{datetime.now().month}/{unique_filename}"
 
     try:
         with open(temp_file_path, "rb") as f:
@@ -62,7 +64,7 @@ async def upload_document(file: UploadFile = File(...)):
             "document_date": ai_data.get("document_date"),
             "total_amount": ai_data.get("total_amount"),
             "document_type": ai_data.get("document_type"),
-            "extracted_text": ai_data.get("extracted_text")
+            "extracted_text": extracted_text
         }
 
         result = supabase.table("documents").insert(document_data).execute()
