@@ -5,6 +5,7 @@ import os
 import shutil
 from datetime import datetime
 from services import ocr_service
+from services import ai_service
 import uuid
 
 router = APIRouter() # This is for all upload-related enpoints
@@ -25,16 +26,10 @@ async def upload_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
     
-    extracted_text = ocr_service.extract_text(temp_file_path)
+    extracted_text = ocr_service.extract_text(temp_file_path) # Extracting File Text
     
-    # Step 3: AI - Extract fields (we'll implement this in ai_service.py)
-    # ai_data = ai_service.extract_fields(extracted_text)
-    ai_data = {
-        "vendor_name": "Test Vendor",
-        "document_date": "2024-10-08",
-        "total_amount": 45.99,
-        "document_type": "receipt"
-    }
+    
+    ai_data = ai_service.extract_fields(extracted_text) # Creating dict of all file info
 
     #Preparing final storage path
     unique_filename = f"{uuid.uuid4()}_{file.filename}"
