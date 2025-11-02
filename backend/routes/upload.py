@@ -6,6 +6,7 @@ import shutil
 from datetime import datetime
 from services import ocr_service
 from services import ai_service
+from services import clean_image_service
 import uuid
 
 router = APIRouter() # This is for all upload-related enpoints
@@ -24,7 +25,9 @@ async def upload_document(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, buffer) # Copying uploaded file to the temp path
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
-
+    
+    if temp_file_path.endswith((".jpeg", ".png", ".jpg")):
+        clean_image_service.clean_image(temp_file_path)
     
     extracted_text = ocr_service.extract_text(temp_file_path) # Extracting File Text
     
