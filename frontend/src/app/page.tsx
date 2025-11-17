@@ -1,5 +1,6 @@
 import UploadCard from "@/components/UploadCard";
 import RecentList from "@/components/RecentList";
+import SearchCard from "@/components/SearchCard";
 
 export default function Home() {
   return (
@@ -13,22 +14,8 @@ export default function Home() {
 
           {/* Quick Search Section */}
           <section className="card p-6">
-            <h2 className="text-lg font-semibold mb-3">Quick search</h2>
-            <form className="space-y-3">
-            <input className="input" placeholder="Search text…" />
-            <div className="grid grid-cols-3 gap-3">
-            <input className="input" type="number" placeholder="MM" aria-label="Month" />
-            <input className="input" type="number" placeholder="DD" aria-label="Day" />
-            <input className="input" type="number" placeholder="YYYY" aria-label="Year" />
-          </div>
-            <select className="input">
-            <option>All types</option>
-            <option>receipt</option>
-            <option>invoice</option>
-            </select>
-            <button type="button" className="btn btn-primary w-full">Search</button>
-            </form>
-            </section>
+            <SearchCard />
+          </section>
         </div>
 
         {/* Recent Documents */}
