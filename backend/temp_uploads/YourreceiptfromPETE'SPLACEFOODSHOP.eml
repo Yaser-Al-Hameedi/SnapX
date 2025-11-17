@@ -1,0 +1,605 @@
+Delivered-To: yaseralhameedi@gmail.com
+Received: by 2002:a05:612c:231d:b0:4d9:4530:68c8 with SMTP id fr29csp437727vqb;
+        Wed, 16 Jul 2025 11:02:10 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF/dmBeWtpSQbqglllIqCm44U1ylOoTgvKjW/dDO485RStzscojR0csuJOoayWrXRqGAF3n
+X-Received: by 2002:a17:907:608f:b0:ae0:daca:f06f with SMTP id a640c23a62f3a-ae9c9bde69bmr364796266b.60.1752688930574;
+        Wed, 16 Jul 2025 11:02:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1752688930; cv=none;
+        d=google.com; s=arc-20240605;
+        b=akazFxSnn8d4Aus4JVNrqih/FVO7kLfToBBqCoRgR/H68VzuuEFmXxYHYIvQobgt5q
+         SsB1P/aXHIzMXWazT72/QIbLp9QsDjJP/YzdtGkKMocE7U3fawKuHh1VhYgUXHUZuGN1
+         VojAH6+mORD6SFLsCD/GYpvINICAJDNcghUDL3rItY2NktOPtrsG3vqLWoa/6Tsx7UwJ
+         WnIir5AWZFK7Crt1L05Hpk+f+Ncq40WAqmuHXhidvQZwx/UijkcPqiL7rkhewABj3o1s
+         mjUDpKb0NdLn1ehbJ2+t0wKoVU2wwpuKkRX9VXroREL+VtQWkQEWNr5tkXloMaZuyj/v
+         j1yw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:reply-to:subject:message-id:mime-version:from:date
+         :content-transfer-encoding:dkim-signature:dkim-signature;
+        bh=7UokawS5uK0EAIxqM6FkMhZz6ireGOvu4UJEbynflpU=;
+        fh=K32fTjXeM/+nbvVTuD0mFTFACqOY0OYsjfhv4nk1YeQ=;
+        b=PllxMhFPqHgE3Tz4s1NfqaNm/5x6OquAwHn8gLUZNa9IoFNfNgyyfgWbg+K7mxme7i
+         QXGtvGrTCJ8NvxIIBtkt4Uks5Fbai74UiH1iPB3AKARWgwV6R5tcZHv7oqjf4Ox2PK0q
+         QHlP2lEyVPTIy7R7h3PVgIbQwYSi0OWV8PyzWOQSnR1hQ1AROl++K2NgLyJzpaAef0Mw
+         9hgydCFJUEUzGoxqPmFAfJsRT+Ai8uFR7O6vjiiDUVqMj5eW6wZjznOXdCpI2ep2OTCJ
+         hCi4K1awLd+w15llPrdzlqzGhOUtYKPl0b6iSqTq1t8XlLri+7AeO0h0Bgu2AtPB2QNJ
+         uW+g==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@clover.com header.s=s1 header.b=c07XJjww;
+       dkim=pass header.i=@sendgrid.info header.s=smtpapi header.b="D8/eKlvM";
+       spf=pass (google.com: domain of bounces+17060778-14b8-yaseralhameedi=gmail.com@mx.clover.com designates 167.89.94.160 as permitted sender) smtp.mailfrom="bounces+17060778-14b8-yaseralhameedi=gmail.com@mx.clover.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=clover.com
+Return-Path: <bounces+17060778-14b8-yaseralhameedi=gmail.com@mx.clover.com>
+Received: from o2.mx.clover.com (o2.mx.clover.com. [167.89.94.160])
+        by mx.google.com with ESMTPS id a640c23a62f3a-ae6e823b39esi1252374466b.289.2025.07.16.11.02.10
+        for <yaseralhameedi@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Jul 2025 11:02:10 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounces+17060778-14b8-yaseralhameedi=gmail.com@mx.clover.com designates 167.89.94.160 as permitted sender) client-ip=167.89.94.160;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@clover.com header.s=s1 header.b=c07XJjww;
+       dkim=pass header.i=@sendgrid.info header.s=smtpapi header.b="D8/eKlvM";
+       spf=pass (google.com: domain of bounces+17060778-14b8-yaseralhameedi=gmail.com@mx.clover.com designates 167.89.94.160 as permitted sender) smtp.mailfrom="bounces+17060778-14b8-yaseralhameedi=gmail.com@mx.clover.com";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=clover.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=clover.com;
+	h=content-transfer-encoding:content-type:date:from:mime-version:subject:
+	reply-to:to:cc:content-type:date:feedback-id:from:subject:to;
+	s=s1; bh=7UokawS5uK0EAIxqM6FkMhZz6ireGOvu4UJEbynflpU=;
+	b=c07XJjwwQfICooKk/zn1ofn7HRL//iIMtX/U+fXu/Tx+OkFjlszzvugeZ8/mh8H71kdH
+	+3d1scFdE+Y7a0/JOFaX+M8h+5Umefqis6qJFaP6XLC1O68idW7F6Ia1rjeulothHjeeXG
+	uhtoOSS9z7gonGkm3U4NjrQ/SaoMwxOqxVSSiawd8yAiEPVYMRXZdwlDuOxmq8fhSOMzvy
+	AVLMBrXqDvAV7JSP7m6K8hOiyKysYLfj1eNRHhzPzwQ/ZEfLXWWom0MnjKQDvKC5Fc+eCS
+	b9EjhFD3J/Gr8GEQnWR6lsxF4kMQK+rTJuNTcHjRP/OSrEZsA6NjJ8+OD+CfAVew==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sendgrid.info;
+	h=content-transfer-encoding:content-type:date:from:mime-version:subject:
+	reply-to:to:cc:content-type:date:feedback-id:from:subject:to;
+	s=smtpapi; bh=7UokawS5uK0EAIxqM6FkMhZz6ireGOvu4UJEbynflpU=;
+	b=D8/eKlvMj2G21mjVMU3YRzMk8ZAXTFF+gdEw9XM2FlblW2QGdwIPV/xbF5T3MNoVRmSA
+	LXfpB7+2sESLo4a60Zxdd+57YwZZMwbKPAhQf1oQPGk4FmHJ2kKpeiG+gYYPPGP80o7thu
+	l2t56JSCcbS6cuacWLPrt/SAVN8bVBbEg=
+Received: by recvd-cc48c778b-sqd47 with SMTP id recvd-cc48c778b-sqd47-1-6877E920-120
+	2025-07-16 18:02:08.37935555 +0000 UTC m=+3634323.006842933
+Received: from MTcwNjA3Nzg (unknown)
+	by geopod-ismtpd-4 (SG) with HTTP
+	id ttxjMj_wQuC6TZkgccfSdA
+	Wed, 16 Jul 2025 18:02:08.338 +0000 (UTC)
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=us-ascii
+Date: Wed, 16 Jul 2025 18:02:09 +0000 (UTC)
+From: "PETE'S PLACE FOOD SHOP (via Clover)" <app@clover.com>
+Mime-Version: 1.0
+Message-ID: <ttxjMj_wQuC6TZkgccfSdA@geopod-ismtpd-4>
+Subject: Your receipt from PETE'S PLACE FOOD SHOP
+Reply-To: foodshop@petesplacebuffalo.com
+X-SG-EID: 
+ =?us-ascii?Q?u001=2EoK+5PVlOuJgbPSTV10=2FIIyUKOBq53EzdK6YA8dKXAks=2Fqt25JPYlsLOm0?=
+ =?us-ascii?Q?dDjs62DYO1dSJbRXk3VFuUUB3WMrh4U2p0RechS?=
+ =?us-ascii?Q?83cVDdvxOlguB0BLu65eSAqa3af3aKRb6Lnq4AR?=
+ =?us-ascii?Q?5HWSN54xFo05UpigwG4OUm9QlybDluIsPaEUByr?=
+ =?us-ascii?Q?h2VFvgLMw6FOsK3vKNFbOXmVDiSt5k1lz1IwE44?=
+ =?us-ascii?Q?HPgFFH094ulyEfo2=2FR+uyyoEq6Q3K1rJ8bxACIa?=
+ =?us-ascii?Q?=2Ft9cfLfHZMPc9hJeUM6o0JiOgA=3D=3D?=
+X-SG-ID: 
+ =?us-ascii?Q?u001=2ESdBcvi+Evd=2FbQef8eZF3BpTL9BgbK5wfSJMJGMsmprD6jXf0b+7b8wO0O?=
+ =?us-ascii?Q?FyM3oyw5AkFUiL3gIRWHSlAjHVBSxnCSb8DrqEk?=
+ =?us-ascii?Q?8nC8oXKTOtl4qXrHrPYaAf2wqZEkLHMU?=
+To: yaseralhameedi@gmail.com
+X-Entity-ID: u001.Tk6q5TaLOuK+YPa19sHgAg==
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns=3D"http://www.w3.org/1999/xhtml" xmlns=3D"http://www.w3.org/199=
+9/xhtml">
+<head>
+    <meta http-equiv=3D"content-type" content=3D"text/html; charset=3Dutf-8=
+" />
+    <meta name=3D"format-detection" content=3D"telephone=3Dno" />
+    <meta name=3D"version" content=3D"Email Template Version 2">
+    <title>Your receipt from PETE&#39;S PLACE FOOD SHOP</title>
+
+    <meta name=3D"viewport" content=3D"width=3Ddevice-width" />
+    <!--[if !mso]><!-->
+    <meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge" />
+    <!--<![endif]-->
+    <style type=3D"text/css">
+        /* UNIVERSAL */
+        body,
+        .body-table {
+            height: 100% !important;
+            width: 100% !important;
+            background-color:#fbfbfb;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        body,
+        table,
+        td,
+        p,
+        a,
+        li,
+        blockquote {
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        table,
+        td {
+            border-collapse:collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+
+        th {
+            font-weight: normal;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        img,
+        a img {
+            outline: none;
+            text-decoration: none;
+        }
+
+        .image-fix {
+            display: block;
+        }
+
+        .thread-item.expanded .thread-body .body,
+        .msg-body {
+            width: 100% !important;
+            display: block !important;
+        }
+
+        .ReadMsgBody,
+        .ExternalClass {
+            width: 100%;
+            background-color: #fbfbfb;
+        }
+
+        .ExternalClass,
+        .ExternalClass p,
+        .ExternalClass span,
+        .ExternalClass font,
+        .ExternalClass td,
+        .ExternalClass div {
+            line-height: 100%;
+        }
+
+        .yshortcuts a {
+            border-bottom: none !important;
+        }
+
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+
+        /* INSTANCE */
+        .column-wrapper {
+            display: block !important;
+            width: 100% !important;
+        }
+
+        /* Custom CSS */
+
+        .merchant-info-image {
+            padding: 30px 0 7px 0;
+            text-align: center;
+        }
+
+        .merchant-info-image .logo {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            object-fit: contain;
+        }
+
+        .dotted-line-wrapper {
+            padding: 1.875em 11.5625em 0 11.5625em;
+        }
+
+        .dotted-line-wrapper .dotted-line-inner-wrapper {
+            width: 100%;
+            vertical-align: middle;
+        }
+
+        .dotted-line-wrapper .dotted-line {
+            border-top: 1px dashed #E5E5E5;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .refund-line-items-body {
+            font-size: 16px;
+            line-height: 24px;
+            color: #253338;
+        }
+
+        .refund-line-items-body tr:last-child {
+            display: none;
+        }
+
+        .refund-line-items-body {
+            width: 50%;
+        }
+
+        .dotted-line-wrapper-large .dotted-line-wrapper {
+            padding: 30px 20px 0 20px;
+        }
+
+        .follow-button-following, .follow-button-not-following:hover {
+            background-color: #3271ab;
+            color: #ffffff;
+        }
+
+        .follow-button-following:hover {
+            border-color:#339dff;
+            background: #339dff;
+        }
+
+        .tender-digits:empty {
+            padding-left: 30px;
+        }
+
+        .card-on-file-wrapper .tender-digits:empty {
+            padding-left: 30px;
+        }
+
+        .card-on-file-items-body {
+            font-size: 16px;
+            line-height: 24px;
+            color: #253338;
+        }
+
+        .card-on-file-items-body tr:last-child {
+            display: none;
+        }
+
+        @media only screen and (max-width: 480px) {
+            .main-par,
+            .footer-par {
+                padding-left: 60px !important;
+                padding-right: 60px !important;
+            }
+
+            .two-col-left {
+                padding-left: 50px !important;
+            }
+
+            .two-col-right {
+                padding-right: 50px !important;
+            }
+
+            table.button {
+                margin: 0 auto !important;
+            }
+
+            a[href^=3Dtel]:link,
+            a[href^=3Dtel]:visited,
+            a[href^=3Dtel]:hover {
+                color: #727272 !important;
+                text-decoration: underline !important;
+                pointer-events: auto !important;
+                cursor: pointer !important;
+            }
+
+            .refund-line-items-body {
+                width: 100%;
+            }
+
+            .dotted-line-wrapper {
+                padding: 0;
+            }
+
+            .merchant-info-image {
+                padding: 30px 20px 7px 0;
+            }
+        }
+    </style>
+</head>
+
+<body  background-color=3D"#fbfbfb" style=3D"margin-top:0;margin-bottom:0;m=
+argin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;=
+padding-left:0;height:100% !important;width:100% !important;
+background-color:#fbfbfb;font-family:Helvetica, Arial, sans-serif;-ms-text-=
+size-adjust:100%;-webkit-text-size-adjust:100%;" >
+<!-- START BODY TABLE -->
+<div class=3D"body-table" style=3D"height:100% !important;width:100% !impor=
+tant;background-color:#fbfbfb;font-family:Helvetica, Arial, sans-serif;" >
+    <!-- START OUTLOOK WRAPPER -->
+    <!--[if (gte mso 9)|(IE)]>
+    <div width=3D"600" align=3D"center" cellpadding=3D"0" cellspacing=3D"0"=
+ border=3D"0">
+    <![endif]-->
+
+    <!-- START HEADER WRAPPER -->
+    <div style=3D"text-align:center;max-width:600px;margin-top:auto;margin-=
+bottom:auto;margin-right:auto;margin-left:auto;" >
+        <table style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:=
+100%;border-spacing:0;border-collapse:collapse;mso-table-lspace:0pt;mso-tab=
+le-rspace:0pt;width:100%;vertical-align:middle;text-align:center;" >
+            <!-- MERCHANT IMAGE LOGO -->
+            <tr>
+                <td class=3D"merchant-info-image" style=3D"text-align:cente=
+r;padding-top:30px;padding-bottom:0;padding-right:7px;padding-left:0;" >
+                    <!-- FIELD IN IMG SRC -->
+                        <img src=3D"https://www.clover.com/assets/images/re=
+ceipt/merchant_default.png" alt=3D"PETE&#39;S PLACE FOOD SHOP's Logo" class=
+=3D"image-fix logo"
+                             style=3D"display:inline-block;width:50px;heigh=
+t:50px;object-fit: contain;" />
+                </td>
+            </tr>
+            <!-- CUSTOMER NAME FIELD -->
+            <tr>
+                <td style=3D"-ms-text-size-adjust:100%;-webkit-text-size-ad=
+just:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0p=
+t;font-weight:bold;font-size:28px;line-height:36px;color:#364145;" >
+                    PETE&#39;S PLACE FOOD SHOP
+                </td>
+            </tr>
+            <!-- CUSTOMER ADDRESS FIELD -->
+            <tr>
+                <td style=3D"-ms-text-size-adjust:100%;-webkit-text-size-ad=
+just:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0p=
+t;font-weight:lighter;font-size:14px;line-height:21px;color:#727272;" >
+                    <a onclick=3D"openMap()" class=3D"address-text" style=
+=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;text-decoration=
+:none;color:#727272;cursor:text;" >
+                        290 MAIN STREET, BUFFALO, NY 14202
+                    </a>
+                </td>
+            </tr>
+            <!-- CUSTOMER PHONE FIELD -->
+                <tr>
+                    <td style=3D"-ms-text-size-adjust:100%;-webkit-text-siz=
+e-adjust:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;font-weight:lighter;font-size:14px;line-height:21px;padding-bottom:25=
+px;" >
+                        <!-- FIELD IN HREF -->
+                        <a href=3D"tel://+1 716-342-2044" style=3D"-ms-text=
+-size-adjust:100%;-webkit-text-size-adjust:100%;text-decoration:none;color:=
+#727272;" >
+                            +1 716-342-2044
+                        </a>
+                    </td>
+                </tr>
+        </table>
+    </div>
+    <!-- END HEADER WRAPPER -->
+
+    <!-- START MAIN WRAPPER -->
+    <div style=3D"width:100%;text-align:center;background-color:#ffffff;max=
+-width:700px;margin-top:auto;margin-bottom:auto;margin-right:auto;margin-le=
+ft:auto;border-radius:6px;" >
+        <!-- START MAIN CONTENT -->
+        <table style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:=
+100%;border-spacing:0;border-collapse:collapse;mso-table-lspace:0pt;mso-tab=
+le-rspace:0pt;vertical-align:middle;text-align:center;width:100%;" >
+            <!-- REFUND -->
+            <!--PICK UP DATE & TIME for RETAIL merchant only -->
+            <!-- PURCHASE DATE FIELD -->
+            <tr>
+                <td class=3D"main-par" style=3D"-ms-text-size-adjust:100%;-=
+webkit-text-size-adjust:100%;border-collapse:collapse;mso-table-lspace:0pt;=
+mso-table-rspace:0pt;
+                font-weight:lighter;font-size:14px;line-height:21px;color:#=
+364145;padding-top:20px;padding-bottom:0;padding-right:0;padding-left:0;" >
+                    <span>July 16, 2025 </span><span style=3D"color:#b1b6b8=
+;padding-top:0;padding-bottom:0;padding-right:8px;padding-left:8px;">&#8226=
+;</span><span> 2:01 PM</span>
+                </td>
+            </tr>
+            <!-- PURCHASE AMOUNT FIELD -->
+            <tr>
+                <td class=3D"main-par" style=3D"-ms-text-size-adjust:100%;-=
+webkit-text-size-adjust:100%;border-collapse:collapse;mso-table-lspace:0pt;=
+mso-table-rspace:0pt;
+                font-weight:bold;font-size:40px;line-height:36px;color:#364=
+145;padding-top:6px;padding-bottom:0;padding-right:0;padding-left:0;" >
+                                    $16.86
+                </td>
+            </tr>
+            <!-- FULL TRANSACTION RECEIPT -->
+            <tr>
+                <td class=3D"main-par" style=3D"-ms-text-size-adjust:100%;-=
+webkit-text-size-adjust:100%;border-collapse:collapse;mso-table-lspace:0pt;=
+mso-table-rspace:0pt;
+                font-weight:lighter;font-size:14px;line-height:21px;color:#=
+727272;padding-top:10px;padding-bottom:20px;padding-right:0;padding-left:0;=
+" >
+                    <!-- FIELD IN HREF -->
+                    <a href=3D"https://u17060778.ct.sendgrid.net/ls/click?u=
+pn=3Du001.ZyjhHDLjAsYvQcEb66ANNLSVVo9q4DNuT0lKNMpqhufK00PK1t-2B484Ros-2F-2B=
+gJT7sPyh__OtRtlT8NXsjAvxrCl-2FjNdI8WJdWBisnWxeTGyuiKwf21gXLqmRfUnP53ckb8IoH=
+n5kKWiMpbW-2BkSm8dP2iEXM-2FA7LfiZjcNm1Wo7REnnu7pC4iCJT2Up2ipAlNwPf1oj1jNOCU=
+okD4CMVo62B-2FPTse-2BW0a6CKO-2BfyFOI8K2F0TYaO2TM5DJvpent5OnpQ96qOWI1FG1vlez=
+amW5v-2BZR3XdCtXmJRG-2Bd2suUu70u8-2F1zs1ioYO6ywm-2FXcv5Nd4ScVgkty7GyRZwtCH2=
+EMl4B3I5RcpmLP-2Fg-2BYloyKWwafRM4-3D" style=3D"-ms-text-size-adjust:100%;-w=
+ebkit-text-size-adjust:100%;color:#727272;text-decoration:underline;border-=
+style:none;" >
+                        full transaction receipt
+                    </a>
+                </td>
+            </tr>
+                <!-- START DASHED LINE -->
+                <tr>
+                    <td class=3D"dotted-line-wrapper" >
+                        <div class=3D"dotted-line-inner-wrapper" style=3D"w=
+idth:100%;vertical-align:middle;" >
+                            <div class=3D"dotted-line" style=3D"border-top-=
+width:1px;border-top-style:dashed;border-top-color:#E5E5E5;vertical-align:m=
+iddle;text-align:center;" >
+                                &nbsp;
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <!-- END DASHED LINE -->
+                    <!-- OPTION 1: NOT FOLLOWING -->
+                    <tr>
+                        <td class=3D"main-par" style=3D"-ms-text-size-adjus=
+t:100%;-webkit-text-size-adjust:100%;border-collapse:collapse;mso-table-lsp=
+ace:0pt;mso-table-rspace:0pt;font-size:20px;color:#000000;padding-top:15px;=
+" >
+                            <!-- NOT FOLLOWING TITLE -->Follow us!
+                        </td>
+                    </tr>
+                    <!-- FOLLOW DESCRIPTION-->
+                    <tr>
+                        <td class=3D"main-par" style=3D"-ms-text-size-adjus=
+t:100%;-webkit-text-size-adjust:100%;border-collapse:collapse;mso-table-lsp=
+ace:0pt;mso-table-rspace:0pt;
+                        font-weight:lighter;font-size:14px;line-height:21px=
+;color:#727272;vertical-align:middle;text-align:center;padding-top:20px;pad=
+ding-bottom:0;padding-right:160px;padding-left:160px;" >
+                            You'll receive occasional offers and messages f=
+rom PETE&#39;S PLACE FOOD SHOP. We'll never send you spam. But, you can <a =
+href=3D"https://u17060778.ct.sendgrid.net/ls/click?upn=3Du001.ZyjhHDLjAsYvQ=
+cEb66ANNLSVVo9q4DNuT0lKNMpqhucOBVnK2K5PRIq8yiHBBq2W4NkwVe2BXkJ7rYPzC9qq65kr=
+Cn4L6LX03vr7zHAvgPw-3DjRJP_OtRtlT8NXsjAvxrCl-2FjNdI8WJdWBisnWxeTGyuiKwf21gX=
+LqmRfUnP53ckb8IoHn5kKWiMpbW-2BkSm8dP2iEXM-2FA7LfiZjcNm1Wo7REnnu7pC4iCJT2Up2=
+ipAlNwPf1oj1jNOCUokD4CMVo62B-2FPTse-2BW0a6CKO-2BfyFOI8K2F0TbiuRSsSyVxoLXEHM=
+IrIkDvPXFaIriZBfSoTITfptyo3xF2CIaCvnmbDXmDHL1SWKS4AcZcLKxIDYyi8hViMDQTgPhIx=
+dRfStd8ymMiNbhg9jzL5jGs-2FThMALIZ-2FM21aOY-3D" style=3D"color: #3271ab;">un=
+subscribe</a> anytime.
+                        </td>
+                    </tr>
+                    <!-- START BUTTON -->
+                    <tr>
+                        <td class=3D"button-container" style=3D"-ms-text-si=
+ze-adjust:100%;-webkit-text-size-adjust:100%;border-collapse:collapse;mso-t=
+able-lspace:0pt;mso-table-rspace:0pt;
+                        font-size:20px;line-height:30px;color:#000000;text-=
+transform:uppercase;letter-spacing:2px;padding-top:22px;padding-bottom:22px=
+;padding-right:35px;padding-left:35px;" >
+                            <table class=3D"button"  align=3D"center" style=
+=3D"margin-top:0;margin-bottom:0;margin-right:auto;margin-left:auto;-ms-tex=
+t-size-adjust:100%;-webkit-text-size-adjust:100%;
+                            border-spacing:0;border-collapse:collapse;mso-t=
+able-lspace:0pt;mso-table-rspace:0pt;" >
+                                <tr>
+                                    <td style=3D"-ms-text-size-adjust:100%;=
+-webkit-text-size-adjust:100%;border-collapse:collapse;mso-table-lspace:0pt=
+;mso-table-rspace:0pt;" >
+                                        <div>
+                                            <a class=3D"follow-button-not-f=
+ollowing" href=3D"https://u17060778.ct.sendgrid.net/ls/click?upn=3Du001.Zyj=
+hHDLjAsYvQcEb66ANNLSVVo9q4DNuT0lKNMpqhuddD1GQ8CSBwebxQdMh-2B47He9xb-2Fx7YGx=
+hhU2JY8A1kd3Fzyiui-2FQlxAaKUrIW2BRFtR-2BKaFELCNajt3sLudD4wbdLZ_OtRtlT8NXsjA=
+vxrCl-2FjNdI8WJdWBisnWxeTGyuiKwf21gXLqmRfUnP53ckb8IoHn5kKWiMpbW-2BkSm8dP2iE=
+XM-2FA7LfiZjcNm1Wo7REnnu7pC4iCJT2Up2ipAlNwPf1oj1jNOCUokD4CMVo62B-2FPTse-2BW=
+0a6CKO-2BfyFOI8K2F0TZmydBE7c0wIaq5lzmTowHeMEAf5k2d-2FSqzMIWYjTqlFQy0rU47MXL=
+goj51-2FyariiOZQZom-2Buohy2Yz-2Fe9L0XqISvPzP74Od7HMMg8RuuXEbZl1lVfVfJIJFO0O=
+tfe-2BObU-3D" target=3D"_blank" style=3D"-ms-text-size-adjust:100%;border-w=
+idth:1px;border-style:solid;border-color:#3271ab;
+                                            border-radius:30px;display:inli=
+ne-block;font-size:10px;line-height:21px;text-transform:uppercase;letter-sp=
+acing:1px;text-align:center;text-decoration:none;width:150px;
+                                            -webkit-text-size-adjust:none;m=
+so-hide:all;background-color:#ffffff;color:#3271ab;" >
+                                                <!-- BUTTON TEXT--><span>Fo=
+llow</span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- END BUTTON -->
+
+        </table>
+        <!-- END MAIN CONTENT -->
+    </div>
+    <!-- END MAIN WRAPPER -->
+
+    <!-- START FOOTER WRAPPER -->
+    <table style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%=
+;border-spacing:0;border-collapse:collapse;mso-table-lspace:0pt;mso-table-r=
+space:0pt;width:100%;vertical-align:middle;
+    max-width:600px;margin-top:auto;margin-bottom:4.5em;margin-right:auto;m=
+argin-left:auto;background-color:#fbfbfb;" >
+        <tr>
+            <td style=3D"-ms-text-size-adjust:100%;-webkit-text-size-adjust=
+:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" =
+>
+                <table style=3D"-ms-text-size-adjust:100%;-webkit-text-size=
+-adjust:100%;border-spacing:0;border-collapse:collapse;mso-table-lspace:0pt=
+;mso-table-rspace:0pt;
+                font-weight:lighter;font-size:14px;line-height:21px;color:#=
+727272;text-align:center;width:100%;" >
+                    <!-- CUSTOMER URL FIELD -->
+                        <tr>
+                            <td class=3D"footer-par" style=3D"-ms-text-size=
+-adjust:100%;-webkit-text-size-adjust:100%;border-collapse:collapse;
+                            mso-table-lspace:0pt;mso-table-rspace:0pt;paddi=
+ng-top:40px;padding-bottom:0;padding-right:25px;padding-left:25px;" >
+                                <!-- FIELD IN HREF -->
+                                <a href=3D"PETESPLACEBUFFALO.COM" style=3D"=
+color:#727272;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;text-=
+decoration:none;" >
+                                    PETESPLACEBUFFALO.COM
+                                </a>
+                            </td>
+                        </tr>
+                    <!-- PRIVACY POLICY -->
+                    <tr>
+                        <td class=3D"footer-par" style=3D"-ms-text-size-adj=
+ust:100%;-webkit-text-size-adjust:100%;border-collapse:collapse;mso-table-l=
+space:0pt;
+                        mso-table-rspace:0pt;padding-top:15px;padding-botto=
+m:15px;padding-right:25px;padding-left:25px;" >
+                            <!--EU Privacy Policies (Merchant, Reseller, Cl=
+over)-->
+                            <!--CCPA and HIPAA Privacy Policies (Merchant, =
+Clover)-->
+                                View the Privacy Policies for
+                                <a href=3D"https://u17060778.ct.sendgrid.ne=
+t/ls/click?upn=3Du001.ZyjhHDLjAsYvQcEb66ANNLSVVo9q4DNuT0lKNMpqhuf45obpc8uBn=
+WijX1v0s2CoS-HO_OtRtlT8NXsjAvxrCl-2FjNdI8WJdWBisnWxeTGyuiKwf21gXLqmRfUnP53c=
+kb8IoHn5kKWiMpbW-2BkSm8dP2iEXM-2FA7LfiZjcNm1Wo7REnnu7pC4iCJT2Up2ipAlNwPf1oj=
+1jNOCUokD4CMVo62B-2FPTse-2BW0a6CKO-2BfyFOI8K2F0TaqCFINDMBzbuUzbyYeDpgKkkVlj=
+02FnJtsbEoc6RKdyPvehqPrl2lRmyclSlnTkLjJt8-2BPxKDxMeL7qXMun-2BB4ISWa2A03jx6h=
+n2Kz98QjLr-2F7f7-2FJOswbR1KGmmPyCEQ-3D"
+                                   style=3D"-ms-text-size-adjust:100%;-webk=
+it-text-size-adjust:100%;color:#3271ab;text-decoration:underline;cursor:poi=
+nter;" >Clover</a>
+                            <!--Default Privacy Policy (Clover)-->
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <!-- END FOOTER WRAPPER -->
+
+    <!--[if (gte mso 9)|(IE)]>
+    </div>
+    <![endif]-->
+    <!-- END OUTLOOK WRAPPER -->
+</div>
+<!-- END BODY TABLE -->
+<img src=3D"https://u17060778.ct.sendgrid.net/wf/open?upn=3Du001.vEIEI9G9I8=
+v7f0uZnplprCD1N0HiS6r8uHdXvbm2LRvajrPrvs3Lh1g-2FnSL8MpdVosP8nE6ylzI3eDEoLpj=
+aQI90k4iJI430fYAnCzs5OO7GtY5BCpozSj69tM1Lv0YhqmdfgrxYYVPJZf5ROCCgP89aIRp62d=
+VcK4zZTDFiayS3U8aJK73chmqIlP809-2ByuXOMSc1DeU-2FDgmrA1pv0OpmG54ZPRiIqhnibVy=
+4wU4895rMljdj4g49Cfa4gnZoRiEG9eDz9IXlLXxvYkwZmg5Bu0ABUQLVpY1xEXKGjwiMmDNPBS=
+6gYYZikEyyJ1O4ux" alt=3D"" width=3D"1" height=3D"1" border=3D"0" style=3D"h=
+eight:1px !important;width:1px !important;border-width:0 !important;margin-=
+top:0 !important;margin-bottom:0 !important;margin-right:0 !important;margi=
+n-left:0 !important;padding-top:0 !important;padding-bottom:0 !important;pa=
+dding-right:0 !important;padding-left:0 !important;"/></body>
+</html>
