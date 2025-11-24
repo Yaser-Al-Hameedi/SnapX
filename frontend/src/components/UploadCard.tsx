@@ -3,27 +3,34 @@ import { useRef, useState } from "react";
 
 export default function UploadCard() {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   function onPick() { inputRef.current?.click(); }
   
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]; 
-    if (!f) return;
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+    
+    setFiles(selectedFiles);
+    
+    // Create thumbnails for each file
+    const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
+    setPreviews(newPreviews);
     setSuccess(false);
   }
 
   async function handleUpload() {
-    if (!file) return;
+    if (files.length === 0) return;
     
     setUploading(true);
+    
+    // TODO: Upload multiple files (we'll handle this next)
+    // For now, just upload first file
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", files[0]);
 
     try {
       const response = await fetch("http://localhost:8000/api/upload", {
@@ -48,7 +55,7 @@ export default function UploadCard() {
     <>
       <h2 className="text-lg font-semibold mb-2">Upload</h2>
       <p className="text-sm text-slate-600 mb-4">
-        Choose a file (desktop) or open camera (phone).
+        Choose files (desktop) or open camera (phone).
       </p>
       <div className="flex items-center gap-3">
         <button onClick={onPick} className="btn btn-primary">
@@ -61,18 +68,36 @@ export default function UploadCard() {
           capture="environment"
           className="hidden"
           onChange={onChange}
+          multiple
         />
       </div>
-      {preview && (
+      
+      {/* Thumbnails */}
+      {previews.length > 0 && (
         <div className="mt-4">
-          <p className="text-sm text-slate-600 mb-2">Preview</p>
-          <img src={preview} alt="preview" className="max-h-72 rounded-xl border" />
+          <p className="text-sm text-slate-600 mb-2">{files.length} file(s) selected</p>
+          <div className="flex gap-2 flex-wrap">
+            {previews.map((preview, i) => (
+              files[i].type === 'application/pdf' ? (
+                <div key={i} className="h-20 w-20 border rounded bg-slate-100 flex items-center justify-center">
+                  <span className="text-xs text-slate-600">PDF</span>
+                </div>
+              ) : (
+                <img 
+                  key={i}
+                  src={preview} 
+                  alt={`preview ${i}`} 
+                  className="h-20 w-20 object-cover rounded border" 
+                />
+              )
+            ))}
+          </div>
           <button 
             onClick={handleUpload} 
             disabled={uploading}
             className="btn btn-primary mt-4"
           >
-            {uploading ? "Uploading..." : "Upload Document"}
+            {uploading ? "Uploading..." : `Upload ${files.length} Document(s)`}
           </button>
           {success && <p className="text-green-600 mt-2">✓ Uploaded!</p>}
         </div>
