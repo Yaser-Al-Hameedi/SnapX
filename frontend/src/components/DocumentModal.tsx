@@ -8,6 +8,8 @@ interface DocumentModalProps {
 }
 
 export default function DocumentModal({ document, onClose, onSave }: DocumentModalProps) {
+  console.log("file_path:", document.file_path);  // Add this line
+  console.log("ends with .pdf?", document.file_path.toLowerCase().endsWith('.pdf'));  // And this
   const [vendorName, setVendorName] = useState(document.vendor_name || "");
   const [documentDate, setDocumentDate] = useState(document.document_date || "");
   const [totalAmount, setTotalAmount] = useState(document.total_amount || "");
@@ -53,15 +55,29 @@ export default function DocumentModal({ document, onClose, onSave }: DocumentMod
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Image Preview */}
-          <div>
-            <h3 className="font-semibold mb-2">Preview</h3>
-            <img 
-              src={document.file_path} 
-              alt="Document" 
-              className="w-full border rounded"
-            />
-          </div>
+          {/* Preview */}
+<div>
+  <h3 className="font-semibold mb-2">Preview</h3>
+  {document.file_path.toLowerCase().includes('.pdf') ? (
+    <div className="border rounded p-8 text-center">
+      <p className="text-slate-600 mb-4">PDF Document</p>
+      <a 
+        href={document.file_path} 
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn btn-primary"
+      >
+        Open PDF
+      </a>
+    </div>
+  ) : (
+    <img 
+      src={document.file_path} 
+      alt="Document" 
+      className="w-full border rounded"
+    />
+  )}
+</div>
 
           {/* Editable Fields */}
           <div className="space-y-4">
