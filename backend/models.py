@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import date, datetime
 
@@ -33,3 +33,17 @@ class SearchFilters(BaseModel):
     date_to: Optional[date] = None
     amount_min: Optional[float] = None
     amount_max: Optional[float] = None
+
+class DocumentUpdate(BaseModel):
+    vendor_name: Optional[str] = None
+    document_date: Optional[date] = None
+    total_amount: Optional[float] = None
+    document_type: Optional[str] = None
+
+    @field_validator('document_date', mode='before')
+    def date_validator(cls, document_date):
+        if document_date == "":
+            return None
+        else:
+            return document_date
+        
