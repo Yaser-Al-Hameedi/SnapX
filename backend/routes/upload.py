@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from models import DocumentCreate, DocumentResponse
 from database import get_supabase_client, upload_file_to_storage
 import os
+import re
 import shutil
 from datetime import datetime
 from services import ocr_service
@@ -27,6 +28,9 @@ async def upload_document(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
     
+    image_for_preview = os.path.join(TEMP_FOLDER, f"original_{file.filename}") # Copying image before process for preview
+    shutil.copy(temp_file_path, image_for_preview)
+    
     mime_type, _ = guess_type(temp_file_path)
     if mime_type and mime_type.startswith('image/'):
         clean_image_service.clean_image(temp_file_path)
@@ -38,10 +42,11 @@ async def upload_document(file: UploadFile = File(...)):
 
     #Preparing final storage path
     unique_filename = f"{uuid.uuid4()}_{file.filename}"
+    unique_filename = re.sub(r'[^\w\-.]', '_', unique_filename)
     storage_path = f"{ai_data['document_type']}/{datetime.now().year}/{datetime.now().month}/{unique_filename}"
 
     try:
-        with open(temp_file_path, "rb") as f:
+        with open(image_for_preview, "rb") as f:
             file_data = f.read()
         
         public_url = upload_file_to_storage(
@@ -81,6 +86,7 @@ async def upload_document(file: UploadFile = File(...)):
 
     try:
         os.remove(temp_file_path)
+        os.remove(image_for_preview)
     except Exception:
         pass
 
