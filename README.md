@@ -32,6 +32,7 @@ Location-based organization
 
 
 Setup
+
 bash# Backend
 cd backend
 pip install -r requirements.txt
