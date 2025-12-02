@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 
 export default function UploadCard() {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const MAX_FILES = 10
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -14,14 +15,20 @@ export default function UploadCard() {
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
 
+    const fileAmount = files.length + selectedFiles.length
+    if (fileAmount <= MAX_FILES){
     const combinedArray = [...files, ...selectedFiles]
     
     setFiles(combinedArray);
-    
+      
     // Create thumbnails for each file
     const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
-    setPreviews(newPreviews);
+    const combinedPreviews = [...previews, ...newPreviews]
+    setPreviews(combinedPreviews);
     setSuccess(false);
+    }else{
+      alert("Maximum 10 files allowed")
+    }
   }
 
   async function handleUpload() {
