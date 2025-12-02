@@ -13,8 +13,10 @@ export default function UploadCard() {
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
+
+    const combinedArray = [...files, ...selectedFiles]
     
-    setFiles(selectedFiles);
+    setFiles(combinedArray);
     
     // Create thumbnails for each file
     const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
