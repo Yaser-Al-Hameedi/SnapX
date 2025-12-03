@@ -12,18 +12,18 @@ export default function UploadCard() {
   function onPick() { inputRef.current?.click(); }
   
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(e.target.files || []);
+    const selectedFiles = Array.from(e.target.files || []); // Array of selected files
     if (selectedFiles.length === 0) return;
 
-    const fileAmount = files.length + selectedFiles.length
-    if (fileAmount <= MAX_FILES){
-    const combinedArray = [...files, ...selectedFiles]
+    const fileAmount = files.length + selectedFiles.length // Grabbing length of all selected files before adding more
+    if (fileAmount <= MAX_FILES){ // Adding files as long as combined file amount <= 10
+    const combinedFiles = [...files, ...selectedFiles]
     
-    setFiles(combinedArray);
+    setFiles(combinedFiles);
       
     // Create thumbnails for each file
     const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
-    const combinedPreviews = [...previews, ...newPreviews]
+    const combinedPreviews = [...previews, ...newPreviews] // Making sure all files preview
     setPreviews(combinedPreviews);
     setSuccess(false);
     }else{
@@ -33,26 +33,32 @@ export default function UploadCard() {
 
   async function handleUpload() {
     if (files.length === 0) return;
-    
+
     setUploading(true);
-    
-    // TODO: Upload multiple files (we'll handle this next)
-    // For now, just upload first file
-    const formData = new FormData();
-    formData.append("file", files[0]);
 
     try {
-      const response = await fetch("http://localhost:8000/api/upload", {
-        method: "POST",
-        body: formData,
+      // Create an array of upload promises (one for each file)
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("http://localhost:8000/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to upload ${file.name}`);
+        }
+
+        return response.json();
       });
 
-      if (response.ok) {
-        setSuccess(true);
-        alert("Document uploaded successfully!");
-      } else {
-        alert("Upload failed");
-      }
+      // Wait for ALL uploads to complete in parallel
+      await Promise.all(uploadPromises);
+
+      setSuccess(true);
+      alert(`All ${files.length} document(s) uploaded successfully!`);
     } catch (error) {
       alert("Upload error: " + error);
     } finally {
