@@ -1,6 +1,7 @@
 from supabase import create_client, Client
 from config import SUPABASE_URL, SUPABASE_SERVICE_KEY, STORAGE_BUCKET
 
+
 print(f"Connecting to: {SUPABASE_URL}")
 print(f"Service key loaded: {'Yes' if SUPABASE_SERVICE_KEY else 'No'}")
 
@@ -25,6 +26,7 @@ def upload_file_to_storage(file_path: str, file_data: bytes, content_type: str) 
         )
         
         # Get public URL
+        
         public_url = supabase.storage.from_(STORAGE_BUCKET).get_public_url(file_path)
         return public_url
     except Exception as e:
