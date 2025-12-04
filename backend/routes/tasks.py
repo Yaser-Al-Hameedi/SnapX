@@ -13,22 +13,30 @@ import uuid
 
 @celery_app.task(name='process_document_task')
 def process_document_task(temp_file_path: str, image_for_preview: str, original_filename: str, content_type: str):
-
-    mime_type, _ = guess_type(temp_file_path)
-    if mime_type and mime_type.startswith('image/'):
-        clean_image_service.clean_image(temp_file_path)
-
-    extracted_text = ocr_service.extract_text(temp_file_path) # Extracting File Text
-
-
-    ai_data = ai_service.extract_fields(extracted_text) # Creating dict of all file info
-
-    #Preparing final storage path
-    unique_filename = f"{uuid.uuid4()}_{original_filename}"
-    unique_filename = re.sub(r'[^\w\-.]', '_', unique_filename)
-    storage_path = f"{ai_data['document_type']}/{datetime.now().year}/{datetime.now().month}/{unique_filename}"
-
     try:
+        # Verify files exist before processing
+        if not os.path.exists(temp_file_path):
+            raise Exception(f"Temp file not found: {temp_file_path}")
+        if not os.path.exists(image_for_preview):
+            raise Exception(f"Preview file not found: {image_for_preview}")
+
+        # Image preprocessing
+        mime_type, _ = guess_type(temp_file_path)
+        if mime_type and mime_type.startswith('image/'):
+            clean_image_service.clean_image(temp_file_path)
+
+        # OCR extraction
+        extracted_text = ocr_service.extract_text(temp_file_path)
+
+        # AI field extraction
+        ai_data = ai_service.extract_fields(extracted_text)
+
+        # Preparing final storage path
+        unique_filename = f"{uuid.uuid4()}_{original_filename}"
+        unique_filename = re.sub(r'[^\w\-.]', '_', unique_filename)
+        storage_path = f"{ai_data['document_type']}/{datetime.now().year}/{datetime.now().month}/{unique_filename}"
+
+        # Upload to storage
         with open(image_for_preview, "rb") as f:
             file_data = f.read()
 
@@ -37,12 +45,8 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
             file_data=file_data,
             content_type=content_type
         )
-    except Exception as e:
-        raise Exception(f"Failed to upload to storage: {str(e)}")
 
-
-    # Saving data to database
-    try:
+        # Save to database
         supabase = get_supabase_client()
 
         document_data = {
@@ -62,15 +66,20 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
 
         saved_document = result.data[0]
 
+        # Cleanup temp files
+        try:
+            os.remove(temp_file_path)
+            os.remove(image_for_preview)
+        except Exception:
+            pass
+
+        return saved_document
+
     except Exception as e:
-        raise Exception("Failed to save to database")
-
-    # Removing the Temporary file
-
-    try:
-        os.remove(temp_file_path)
-        os.remove(image_for_preview)
-    except Exception:
-        pass
-
-    return saved_document
+        # Cleanup temp files on any failure
+        try:
+            os.remove(temp_file_path)
+            os.remove(image_for_preview)
+        except Exception:
+            pass
+        raise Exception(f"Failed to process {original_filename}: {str(e)}")
