@@ -6,6 +6,15 @@ def clean_image(filepath: str):
 
     if read_image is None:
         raise Exception(f"Image failed to process")
+
+    # Resize large images to prevent memory issues (max 4500px on longest side)
+    MAX_DIMENSION = 4500
+    height, width = read_image.shape
+    if max(height, width) > MAX_DIMENSION:
+        scale = MAX_DIMENSION / max(height, width)
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+        read_image = cv2.resize(read_image, (new_width, new_height), interpolation=cv2.INTER_AREA)
     
     # Step 1: Denoise
     denoised = cv2.fastNlMeansDenoising(read_image, None, 10, 7, 21)
