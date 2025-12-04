@@ -12,8 +12,11 @@ os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 @router.post("/upload", response_model=TaskResponse)
 async def upload_document(file: UploadFile = File(...)):
+    import uuid
 
-    temp_file_path = os.path.join(TEMP_FOLDER, file.filename) # Temporary file path for OCR and LLM
+    # Generate unique filenames to prevent collisions when uploading multiple files
+    unique_id = str(uuid.uuid4())
+    temp_file_path = os.path.join(TEMP_FOLDER, f"{unique_id}_{file.filename}") # Temporary file path for OCR and LLM
 
     try:
         with open(temp_file_path, "wb") as buffer: # Opening the temp path
@@ -21,7 +24,7 @@ async def upload_document(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
-    image_for_preview = os.path.join(TEMP_FOLDER, f"original_{file.filename}") # Copying image before process for preview
+    image_for_preview = os.path.join(TEMP_FOLDER, f"original_{unique_id}_{file.filename}") # Copying image before process for preview
     shutil.copy(temp_file_path, image_for_preview)
 
     result = process_document_task.delay(temp_file_path, image_for_preview, file.filename, file.content_type)
