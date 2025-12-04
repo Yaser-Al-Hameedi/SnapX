@@ -46,4 +46,8 @@ class DocumentUpdate(BaseModel):
             return None
         else:
             return document_date
-        
+
+class TaskResponse(BaseModel):
+    task_id: str
+    status: str
+    message: str
