@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import date, datetime
+from typing import List
 
 class DocumentBase(BaseModel):
     """Base document fields"""
@@ -51,3 +52,7 @@ class TaskResponse(BaseModel):
     task_id: str
     status: str
     message: str
+
+class StatusResponse(BaseModel):
+    tasks: List[TaskResponse]
+    
