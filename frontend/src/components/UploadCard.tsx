@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { useProcessing } from "@/context/ProcessingContext";
 
 export default function UploadCard() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -8,6 +9,7 @@ export default function UploadCard() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { startProcessing } = useProcessing();
 
   function onPick() { inputRef.current?.click(); }
   
@@ -55,10 +57,13 @@ export default function UploadCard() {
       });
 
       // Wait for ALL uploads to complete in parallel
-      await Promise.all(uploadPromises);
+      const results = await Promise.all(uploadPromises);
+
+      // Extract task_ids from results and start global processing
+      const ids = results.map(result => result.task_id);
+      startProcessing(ids);
 
       setSuccess(true);
-      alert(`All ${files.length} document(s) uploaded successfully!`);
     } catch (error) {
       alert("Upload error: " + error);
     } finally {
@@ -86,7 +91,7 @@ export default function UploadCard() {
           multiple
         />
       </div>
-      
+
       {/* Thumbnails */}
       {previews.length > 0 && (
         <div className="mt-4">
@@ -98,17 +103,17 @@ export default function UploadCard() {
                   <span className="text-xs text-slate-600">PDF</span>
                 </div>
               ) : (
-                <img 
+                <img
                   key={i}
-                  src={preview} 
-                  alt={`preview ${i}`} 
-                  className="h-20 w-20 object-cover rounded border" 
+                  src={preview}
+                  alt={`preview ${i}`}
+                  className="h-20 w-20 object-cover rounded border"
                 />
               )
             ))}
           </div>
-          <button 
-            onClick={handleUpload} 
+          <button
+            onClick={handleUpload}
             disabled={uploading}
             className="btn btn-primary mt-4"
           >
