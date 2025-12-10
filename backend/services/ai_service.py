@@ -6,28 +6,18 @@ def extract_fields(text: str) -> dict:
     client = OpenAI(api_key=AI_API_KEY)
 
     prompt = f"""
-    You are a document extraction expert. Extract the following fields from this document text:
+    Extract from OCR text (may have errors):
 
-    Required fields:
-    - vendor_name: The business/company name (if present)
-    - document_date: The document date in YYYY-MM-DD format (if present)
-    - total_amount: The total amount as a number without currency symbols (if present)
-    - document_type: Classify as one of: "receipt", "invoice", "bill", "statement", or "other"
-    - due_date: Grab the due date in YYYY-MM-DD format (if present)
+    - vendor_name: The FIRST/HIGHEST company name with logo at the very top. This is usually the largest text or has a company logo. Skip any names that appear below it. NEVER use "BILL TO"/"SHIP TO" sections. Vendor name will never be Saba Petroleum LLC
+    - document_date: Date from "DATE" or "Invoice Date" field (YYYY-MM-DD)
+    - total_amount: The main payment amount - look for "Total", "Balance Due", "Amount Due", "Installment Amount", or the largest monetary value. If multiple amounts exist, prioritize non-zero values. Return number only.
+    - document_type: "receipt", "invoice", "bill", "statement", or "other"
 
-    Rules:
-    - Return ONLY valid JSON with these exact field names
-    - If document is a bill, grab the due date and place it as the due date
-    - Use null for any field you cannot confidently extract
-    - For document_date, convert any date format to YYYY-MM-DD
-    - For total_amount, extract only the number (e.g., 45.99 not $45.99)
-    - Be conservative - if unsure, use null rather than guessing
+    Use null if uncertain. Convert dates to YYYY-MM-DD.
 
-    Document text:
     {text}
 
-    Return format:
-    {{"vendor_name": "...", "document_date": "YYYY-MM-DD", "total_amount": 0.00, "document_type": "..."}}
+    JSON: {{"vendor_name": "...", "document_date": "YYYY-MM-DD", "total_amount": 0.00, "document_type": "..."}}
     """
 
     response = client.chat.completions.create(
