@@ -10,10 +10,13 @@ from services import ai_service
 from services import clean_image_service
 from mimetypes import guess_type
 import uuid
+import time
 
 @celery_app.task(name='process_document_task')
 def process_document_task(temp_file_path: str, image_for_preview: str, original_filename: str, content_type: str):
     try:
+        start_time = time.time()
+
         # Verify files exist before processing
         if not os.path.exists(temp_file_path):
             raise Exception(f"Temp file not found: {temp_file_path}")
@@ -21,15 +24,21 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
             raise Exception(f"Preview file not found: {image_for_preview}")
 
         # Image preprocessing
-        mime_type, _ = guess_type(temp_file_path)
-        if mime_type and mime_type.startswith('image/'):
-            clean_image_service.clean_image(temp_file_path)
+        #preprocess_start = time.time()
+        #mime_type, _ = guess_type(temp_file_path)
+        #if mime_type and mime_type.startswith('image/'):
+            #clean_image_service.clean_image(temp_file_path)
+        #print(f"[{original_filename}] Preprocessing: {time.time() - preprocess_start:.2f}s")
 
         # OCR extraction
+        ocr_start = time.time()
         extracted_text = ocr_service.extract_text(temp_file_path)
+        print(f"[{original_filename}] OCR: {time.time() - ocr_start:.2f}s")
 
         # AI field extraction
+        ai_start = time.time()
         ai_data = ai_service.extract_fields(extracted_text)
+        print(f"[{original_filename}] AI extraction: {time.time() - ai_start:.2f}s")
 
         # Preparing final storage path
         unique_filename = f"{uuid.uuid4()}_{original_filename}"
@@ -73,6 +82,7 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
         except Exception:
             pass
 
+        print(f"[{original_filename}] TOTAL TIME: {time.time() - start_time:.2f}s")
         return saved_document
 
     except Exception as e:

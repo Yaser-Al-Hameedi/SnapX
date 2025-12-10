@@ -48,6 +48,8 @@ async def search_documents(text_query: str = None,
     if filters.text_query:
         query = query.ilike("extracted_text", f"%{filters.text_query}%")
     
+    query = query.order("uploaded_at", desc=True)
+    
     result = query.execute()
     return result.data
     
