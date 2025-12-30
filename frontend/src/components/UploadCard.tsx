@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useProcessing } from "@/context/ProcessingContext";
+import { supabase } from "@/lib/supabase";
 
 export default function UploadCard() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -39,6 +40,16 @@ export default function UploadCard() {
     setUploading(true);
 
     try {
+      // Get user's auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        alert("You must be logged in to upload files");
+        setUploading(false);
+        return;
+      }
+
       // Create an array of upload promises (one for each file)
       const uploadPromises = files.map(async (file) => {
         const formData = new FormData();
@@ -46,6 +57,9 @@ export default function UploadCard() {
 
         const response = await fetch("http://localhost:8000/api/upload", {
           method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
           body: formData,
         });
 

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import DocumentModal from "@/components/DocumentModal";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([]);
@@ -17,7 +18,7 @@ export default function DocumentsPage() {
 
   async function fetchDocuments() {
     setLoading(true);
-    
+
     const params = new URLSearchParams();
     if (textQuery) params.append("text_query", textQuery);
     if (vendorName) params.append("vendor_name", vendorName);
@@ -28,7 +29,22 @@ export default function DocumentsPage() {
     if (amountMax) params.append("amount_max", amountMax);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/search?${params}`);
+      // Get user's auth token
+      const { supabase } = await import("@/lib/supabase");
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        console.error("No auth token");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8000/api/search?${params}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       setDocuments(data);
     } catch (error) {
@@ -49,8 +65,9 @@ export default function DocumentsPage() {
   }, []);
 
   return (
-    <main className="container py-8 space-y-6">
-      <h1 className="text-xl font-semibold">Documents</h1>
+    <ProtectedRoute>
+      <main className="container py-8 space-y-6">
+        <h1 className="text-xl font-semibold">Documents</h1>
 
       {/* Search Filters */}
       <div className="card p-6 space-y-4">
@@ -173,12 +190,13 @@ export default function DocumentsPage() {
 
       {/* Modal */}
       {selectedDoc && (
-        <DocumentModal 
+        <DocumentModal
           document={selectedDoc}
           onClose={() => setSelectedDoc(null)}
           onSave={handleDocumentUpdate}
         />
       )}
-    </main>
+      </main>
+    </ProtectedRoute>
   );
 }
