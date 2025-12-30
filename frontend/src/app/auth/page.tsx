@@ -19,7 +19,7 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         // Login
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -42,8 +42,9 @@ export default function AuthPage() {
           router.push("/");
         }
       }
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || "An error occurred");
     } finally {
       setLoading(false);
     }

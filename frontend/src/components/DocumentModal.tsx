@@ -1,10 +1,20 @@
 "use client";
 import { useState } from "react";
 
+interface Document {
+  id: string;
+  vendor_name?: string;
+  document_date: string;
+  total_amount: number;
+  document_type: string;
+  file_path: string;
+  [key: string]: unknown;
+}
+
 interface DocumentModalProps {
-  document: any;
+  document: Document;
   onClose: () => void;
-  onSave: (updatedDoc: any) => void;
+  onSave: (updatedDoc: Document) => void;
 }
 
 export default function DocumentModal({ document, onClose, onSave }: DocumentModalProps) {
@@ -12,7 +22,7 @@ export default function DocumentModal({ document, onClose, onSave }: DocumentMod
   console.log("ends with .pdf?", document.file_path.toLowerCase().endsWith('.pdf'));  // And this
   const [vendorName, setVendorName] = useState(document.vendor_name || "");
   const [documentDate, setDocumentDate] = useState(document.document_date || "");
-  const [totalAmount, setTotalAmount] = useState(document.total_amount || "");
+  const [totalAmount, setTotalAmount] = useState(document.total_amount?.toString() || "");
   const [documentType, setDocumentType] = useState(document.document_type || "");
   const [saving, setSaving] = useState(false);
 

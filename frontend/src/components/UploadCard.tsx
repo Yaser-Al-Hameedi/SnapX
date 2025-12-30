@@ -81,8 +81,9 @@ export default function UploadCard() {
       startProcessing(ids);
 
       setSuccess(true);
-    } catch (error: any) {
-      setErrorMessage(error.message || "Upload failed");
+    } catch (error) {
+      const err = error as Error;
+      setErrorMessage(err.message || "Upload failed");
     } finally {
       setUploading(false);
     }
