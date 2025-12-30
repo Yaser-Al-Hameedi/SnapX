@@ -1,18 +1,52 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Header
 from models import TaskResponse
 import os
 import shutil
 from routes.tasks import process_document_task
+from database import supabase, get_supabase_client
 
 router = APIRouter() # This is for all upload-related enpoints
 
 TEMP_FOLDER = "temp_uploads" # Temporary folder for OCR and LLM
 os.makedirs(TEMP_FOLDER, exist_ok=True)
 
+# Admin user (unlimited uploads)
+ADMIN_USER_ID = "b12fa4d3-cf4d-4acf-ab03-e0ffbffd96bd"
+# Upload limit for regular users
+USER_UPLOAD_LIMIT = 30
+
 
 @router.post("/upload", response_model=TaskResponse)
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(
+    file: UploadFile = File(...),
+    authorization: str = Header(None)
+):
     import uuid
+
+    # Verify user authentication
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization token")
+
+    token = authorization.replace("Bearer ", "")
+
+    # Verify token with Supabase and get user_id
+    try:
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+
+    # Check upload limit for non-admin users
+    if user_id != ADMIN_USER_ID:
+        supabase_client = get_supabase_client()
+        result = supabase_client.table("documents").select("id", count="exact").eq("user_id", user_id).execute()
+        current_count = result.count or 0
+
+        if current_count >= USER_UPLOAD_LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Upload limit reached. You have uploaded {current_count}/{USER_UPLOAD_LIMIT} documents."
+            )
 
     # Generate unique filenames to prevent collisions when uploading multiple files
     unique_id = str(uuid.uuid4())
@@ -27,7 +61,8 @@ async def upload_document(file: UploadFile = File(...)):
     image_for_preview = os.path.join(TEMP_FOLDER, f"original_{unique_id}_{file.filename}") # Copying image before process for preview
     shutil.copy(temp_file_path, image_for_preview)
 
-    result = process_document_task.delay(temp_file_path, image_for_preview, file.filename, file.content_type)
+    # Pass user_id to the Celery task
+    result = process_document_task.delay(temp_file_path, image_for_preview, file.filename, file.content_type, user_id)
 
     return {
         "task_id": result.id,

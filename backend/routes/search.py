@@ -1,17 +1,32 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Header
 from models import SearchFilters
-from database import get_supabase_client
+from database import get_supabase_client, supabase
 
 router = APIRouter()
 
 @router.get("/search")
-async def search_documents(text_query: str = None,
+async def search_documents(
+    authorization: str = Header(None),
+    text_query: str = None,
     vendor_name: str = None,
     document_type: str = None,
     date_from: str = None,
     date_to: str = None,
     amount_min: float = None,
     amount_max: float = None):
+
+    # Verify user authentication
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization token")
+
+    token = authorization.replace("Bearer ", "")
+
+    # Verify token with Supabase and get user_id
+    try:
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
     filters = SearchFilters(
         text_query=text_query,
@@ -22,10 +37,11 @@ async def search_documents(text_query: str = None,
         amount_min=amount_min,
         amount_max=amount_max
     )
-    
-    supabase = get_supabase_client()
 
-    query = supabase.table("documents").select("*")
+    supabase_client = get_supabase_client()
+
+    # Filter by user_id first
+    query = supabase_client.table("documents").select("*").eq("user_id", user_id)
 
     if filters.vendor_name:
         query = query.ilike("vendor_name", f"%{filters.vendor_name}%")

@@ -13,7 +13,7 @@ import uuid
 import time
 
 @celery_app.task(name='process_document_task')
-def process_document_task(temp_file_path: str, image_for_preview: str, original_filename: str, content_type: str):
+def process_document_task(temp_file_path: str, image_for_preview: str, original_filename: str, content_type: str, user_id: str):
     try:
         start_time = time.time()
 
@@ -65,7 +65,8 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
             "document_date": ai_data.get("document_date"),
             "total_amount": ai_data.get("total_amount"),
             "document_type": ai_data.get("document_type"),
-            "extracted_text": extracted_text
+            "extracted_text": extracted_text,
+            "user_id": user_id
         }
 
         result = supabase.table("documents").insert(document_data).execute()
