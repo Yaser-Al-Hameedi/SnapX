@@ -38,7 +38,7 @@ export function ProcessingProvider({ children }: { children: React.ReactNode }) 
 
         if (response.ok) {
           const data = await response.json();
-          const successCount = data.tasks.filter((task: any) => task.status === "SUCCESS").length;
+          const successCount = data.tasks.filter((task: { status: string }) => task.status === "SUCCESS").length;
           setProcessedCount(successCount);
 
           // Stop polling when all tasks are complete

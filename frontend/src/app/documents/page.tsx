@@ -3,10 +3,20 @@ import { useEffect, useState } from "react";
 import DocumentModal from "@/components/DocumentModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+interface Document {
+  id: string;
+  vendor_name?: string;
+  document_type: string;
+  total_amount: number;
+  document_date: string;
+  file_path: string;
+  [key: string]: unknown;
+}
+
 export default function DocumentsPage() {
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   
   const [textQuery, setTextQuery] = useState("");
   const [vendorName, setVendorName] = useState("");
@@ -54,8 +64,8 @@ export default function DocumentsPage() {
     }
   }
 
-  function handleDocumentUpdate(updatedDoc: any) {
-    setDocuments(docs => 
+  function handleDocumentUpdate(updatedDoc: Document) {
+    setDocuments(docs =>
       docs.map(doc => doc.id === updatedDoc.id ? updatedDoc : doc)
     );
   }

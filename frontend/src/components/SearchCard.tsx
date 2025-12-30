@@ -24,10 +24,7 @@ export default function SearchCard() {
     if (amountMax) params.append("amount_max", amountMax);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/search?${params}`);
-      const data = await response.json();
-      
-      // Redirect to documents page with results
+      // Redirect to documents page with search params
       window.location.href = `/documents?${params}`;
     } catch (error) {
       alert("Search error: " + error);

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Doc = {
   id: string;
   date: string;
@@ -14,15 +16,16 @@ const DOCS: Doc[] = [
   { id: "5", date: "2025-09-23", type: "invoice", amount: "$212.55", vendor: "Fuel Dist." },
 ];
 
-export default function DocumentDetail({ params }: { params: { id: string } }) {
-  const doc = DOCS.find(d => d.id === params.id);
+export default async function DocumentDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const doc = DOCS.find(d => d.id === id);
 
   if (!doc) {
     return (
       <main className="container py-8">
         <div className="card p-6">
           <p className="text-sm">Document not found.</p>
-          <a className="underline text-sm mt-2 inline-block" href="/documents">Back to documents</a>
+          <Link className="underline text-sm mt-2 inline-block" href="/documents">Back to documents</Link>
         </div>
       </main>
     );
@@ -30,7 +33,7 @@ export default function DocumentDetail({ params }: { params: { id: string } }) {
 
   return (
     <main className="container py-8 space-y-6">
-      <a className="underline text-sm" href="/documents">← Back to documents</a>
+      <Link className="underline text-sm" href="/documents">← Back to documents</Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left: image placeholder */}
