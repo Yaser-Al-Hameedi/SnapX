@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { useProcessing } from "@/context/ProcessingContext";
 import { supabase } from "@/lib/supabase";
+import ErrorModal from "./ErrorModal";
 
 export default function UploadCard() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -10,6 +11,7 @@ export default function UploadCard() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { startProcessing } = useProcessing();
 
   function onPick() { inputRef.current?.click(); }
@@ -21,16 +23,16 @@ export default function UploadCard() {
     const fileAmount = files.length + selectedFiles.length // Grabbing length of all selected files before adding more
     if (fileAmount <= MAX_FILES){ // Adding files as long as combined file amount <= 10
     const combinedFiles = [...files, ...selectedFiles]
-    
+
     setFiles(combinedFiles);
-      
+
     // Create thumbnails for each file
     const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
     const combinedPreviews = [...previews, ...newPreviews] // Making sure all files preview
     setPreviews(combinedPreviews);
     setSuccess(false);
     }else{
-      alert("Maximum 10 files allowed")
+      setErrorMessage("Maximum 10 files allowed")
     }
   }
 
@@ -45,7 +47,7 @@ export default function UploadCard() {
       const token = session?.access_token;
 
       if (!token) {
-        alert("You must be logged in to upload files");
+        setErrorMessage("You must be logged in to upload files");
         setUploading(false);
         return;
       }
@@ -64,7 +66,8 @@ export default function UploadCard() {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
+          const errorData = await response.json();
+          throw new Error(errorData.detail || `Failed to upload ${file.name}`);
         }
 
         return response.json();
@@ -78,8 +81,8 @@ export default function UploadCard() {
       startProcessing(ids);
 
       setSuccess(true);
-    } catch (error) {
-      alert("Upload error: " + error);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -87,6 +90,13 @@ export default function UploadCard() {
 
   return (
     <>
+      {errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
+
       <h2 className="text-lg font-semibold mb-2">Upload</h2>
       <p className="text-sm text-slate-600 mb-4">
         Choose files (desktop) or open camera (phone).

@@ -11,7 +11,7 @@ TEMP_FOLDER = "temp_uploads" # Temporary folder for OCR and LLM
 os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 # Admin user (unlimited uploads)
-ADMIN_USER_ID = "b12fa4d3-cf4d-4acf-ab03-e0ffbffd96bd"
+ADMIN_USER_ID = os.getenv("ADMIN_USER_ID")
 # Upload limit for regular users
 USER_UPLOAD_LIMIT = 30
 
@@ -36,16 +36,17 @@ async def upload_document(
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
-    # Check upload limit for non-admin users
+    # Check upload limit for non-admin users (per-request check to prevent race conditions)
     if user_id != ADMIN_USER_ID:
         supabase_client = get_supabase_client()
         result = supabase_client.table("documents").select("id", count="exact").eq("user_id", user_id).execute()
         current_count = result.count or 0
 
+        # Check if this single upload would exceed the limit
         if current_count >= USER_UPLOAD_LIMIT:
             raise HTTPException(
                 status_code=403,
-                detail=f"Upload limit reached. You have uploaded {current_count}/{USER_UPLOAD_LIMIT} documents."
+                detail=f"Upload limit reached. You have {current_count}/{USER_UPLOAD_LIMIT} documents."
             )
 
     # Generate unique filenames to prevent collisions when uploading multiple files
