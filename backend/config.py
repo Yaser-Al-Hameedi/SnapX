@@ -18,7 +18,7 @@ STORAGE_BUCKET = "documents"
 # Validate required environment variables
 required_vars = {
     "SUPABASE_URL": SUPABASE_URL,
-    "SUPABASE_KEY": SUPABASE_KEY,
+    "SUPABASE_SERVICE_KEY": SUPABASE_SERVICE_KEY,
     "AI_API_KEY": AI_API_KEY
 }
 missing_vars = [var for var, value in required_vars.items() if not value or not value.strip()]
