@@ -11,3 +11,4 @@ pydantic==2.5.0
 opencv-python-headless==4.9.0.80
 celery==5.3.4
 redis==5.0.1
+numpy<2
