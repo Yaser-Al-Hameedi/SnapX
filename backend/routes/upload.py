@@ -2,8 +2,14 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Header
 from models import TaskResponse
 import os
 import base64
+import logging
 from routes.tasks import process_document_task
+from celery_app import celery_app
 from database import supabase, get_supabase_client
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter() # This is for all upload-related enpoints
 
@@ -52,7 +58,16 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
 
     # Pass file data (base64) to Celery task instead of file paths
-    result = process_document_task.delay(file_data_b64, file.filename, file.content_type, user_id)
+    logger.info(f"[DEBUG] About to send task for file: {file.filename}")
+    logger.info(f"[DEBUG] Celery broker URL: {celery_app.conf.broker_url[:30]}...")
+
+    try:
+        result = process_document_task.delay(file_data_b64, file.filename, file.content_type, user_id)
+        logger.info(f"[DEBUG] Task sent successfully! Task ID: {result.id}")
+        logger.info(f"[DEBUG] Task state: {result.state}")
+    except Exception as e:
+        logger.error(f"[DEBUG] Failed to send task: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to queue task: {str(e)}")
 
     return {
         "task_id": result.id,

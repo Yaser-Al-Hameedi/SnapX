@@ -1,9 +1,14 @@
 import os
 import ssl
+import logging
 from celery import Celery
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Get Redis URL from environment (Upstash for production, localhost for dev)
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+logger.info(f"[CELERY] Using broker URL: {REDIS_URL[:30]}..." if len(REDIS_URL) > 30 else f"[CELERY] Using broker URL: {REDIS_URL}")
 
 # Create Celery app instance
 celery_app = Celery(
