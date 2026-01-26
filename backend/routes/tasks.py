@@ -3,7 +3,7 @@ from database import get_supabase_client, upload_file_to_storage
 from models import DocumentResponse
 import os
 import re
-import shutil
+import base64
 from datetime import datetime
 from services import ocr_service
 from services import ai_service
@@ -12,23 +12,22 @@ from mimetypes import guess_type
 import uuid
 import time
 
+TEMP_FOLDER = "temp_uploads"
+os.makedirs(TEMP_FOLDER, exist_ok=True)
+
 @celery_app.task(name='process_document_task')
-def process_document_task(temp_file_path: str, image_for_preview: str, original_filename: str, content_type: str, user_id: str):
+def process_document_task(file_data_b64: str, original_filename: str, content_type: str, user_id: str):
+    temp_file_path = None
     try:
         start_time = time.time()
 
-        # Verify files exist before processing
-        if not os.path.exists(temp_file_path):
-            raise Exception(f"Temp file not found: {temp_file_path}")
-        if not os.path.exists(image_for_preview):
-            raise Exception(f"Preview file not found: {image_for_preview}")
+        # Decode base64 file data and save to temp file on worker
+        file_bytes = base64.b64decode(file_data_b64)
+        unique_id = str(uuid.uuid4())
+        temp_file_path = os.path.join(TEMP_FOLDER, f"{unique_id}_{original_filename}")
 
-        # Image preprocessing
-        #preprocess_start = time.time()
-        #mime_type, _ = guess_type(temp_file_path)
-        #if mime_type and mime_type.startswith('image/'):
-            #clean_image_service.clean_image(temp_file_path)
-        #print(f"[{original_filename}] Preprocessing: {time.time() - preprocess_start:.2f}s")
+        with open(temp_file_path, "wb") as f:
+            f.write(file_bytes)
 
         # OCR extraction
         ocr_start = time.time()
@@ -45,13 +44,10 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
         unique_filename = re.sub(r'[^\w\-.]', '_', unique_filename)
         storage_path = f"{ai_data['document_type']}/{datetime.now().year}/{datetime.now().month}/{unique_filename}"
 
-        # Upload to storage
-        with open(image_for_preview, "rb") as f:
-            file_data = f.read()
-
+        # Upload to storage (use the original file bytes)
         public_url = upload_file_to_storage(
             file_path=storage_path,
-            file_data=file_data,
+            file_data=file_bytes,
             content_type=content_type
         )
 
@@ -76,10 +72,10 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
 
         saved_document = result.data[0]
 
-        # Cleanup temp files
+        # Cleanup temp file
         try:
-            os.remove(temp_file_path)
-            os.remove(image_for_preview)
+            if temp_file_path and os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
         except Exception:
             pass
 
@@ -87,10 +83,10 @@ def process_document_task(temp_file_path: str, image_for_preview: str, original_
         return saved_document
 
     except Exception as e:
-        # Cleanup temp files on any failure
+        # Cleanup temp file on failure
         try:
-            os.remove(temp_file_path)
-            os.remove(image_for_preview)
+            if temp_file_path and os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
         except Exception:
             pass
         raise Exception(f"Failed to process {original_filename}: {str(e)}")

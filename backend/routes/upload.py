@@ -1,14 +1,11 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Header
 from models import TaskResponse
 import os
-import shutil
+import base64
 from routes.tasks import process_document_task
 from database import supabase, get_supabase_client
 
 router = APIRouter() # This is for all upload-related enpoints
-
-TEMP_FOLDER = "temp_uploads" # Temporary folder for OCR and LLM
-os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 # Admin user (unlimited uploads)
 ADMIN_USER_ID = os.getenv("ADMIN_USER_ID")
@@ -21,8 +18,6 @@ async def upload_document(
     file: UploadFile = File(...),
     authorization: str = Header(None)
 ):
-    import uuid
-
     # Verify user authentication
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid authorization token")
@@ -49,21 +44,15 @@ async def upload_document(
                 detail=f"Upload limit reached. You have {current_count}/{USER_UPLOAD_LIMIT} documents."
             )
 
-    # Generate unique filenames to prevent collisions when uploading multiple files
-    unique_id = str(uuid.uuid4())
-    temp_file_path = os.path.join(TEMP_FOLDER, f"{unique_id}_{file.filename}") # Temporary file path for OCR and LLM
-
+    # Read file bytes and encode as base64 for Celery task
     try:
-        with open(temp_file_path, "wb") as buffer: # Opening the temp path
-            shutil.copyfileobj(file.file, buffer) # Copying uploaded file to the temp path
+        file_bytes = await file.read()
+        file_data_b64 = base64.b64encode(file_bytes).decode('utf-8')
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
 
-    image_for_preview = os.path.join(TEMP_FOLDER, f"original_{unique_id}_{file.filename}") # Copying image before process for preview
-    shutil.copy(temp_file_path, image_for_preview)
-
-    # Pass user_id to the Celery task
-    result = process_document_task.delay(temp_file_path, image_for_preview, file.filename, file.content_type, user_id)
+    # Pass file data (base64) to Celery task instead of file paths
+    result = process_document_task.delay(file_data_b64, file.filename, file.content_type, user_id)
 
     return {
         "task_id": result.id,
