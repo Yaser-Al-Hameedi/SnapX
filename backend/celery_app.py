@@ -23,8 +23,8 @@ celery_app.conf.update(
     task_soft_time_limit=240,  # Warn task after 4 minutes
     task_acks_late=True,  # Acknowledge tasks only after completion (prevents lost tasks on crash)
     worker_prefetch_multiplier=1,  # Process one task at a time (prevents file conflicts)
-    broker_use_ssl=REDIS_URL.startswith("rediss://"),  # Enable SSL for Upstash
-    redis_backend_use_ssl=REDIS_URL.startswith("rediss://"),  # Enable SSL for backend
+    broker_use_ssl={"ssl_cert_reqs": None} if REDIS_URL.startswith("rediss://") else None,
+    redis_backend_use_ssl={"ssl_cert_reqs": None} if REDIS_URL.startswith("rediss://") else None
 )
 
 # Import tasks AFTER celery_app is defined (prevents circular import)
