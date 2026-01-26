@@ -7,7 +7,10 @@ app = FastAPI(title="SnapX API", version="1.0.0")
 # CORS - allows frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://snap-x-yaser-al-hameedis-projects.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
