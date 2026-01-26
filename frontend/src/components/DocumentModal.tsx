@@ -30,7 +30,7 @@ export default function DocumentModal({ document, onClose, onSave }: DocumentMod
     setSaving(true);
     
     try {
-      const response = await fetch(`http://localhost:8000/api/documents/${document.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/documents/${document.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

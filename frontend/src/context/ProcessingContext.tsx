@@ -30,7 +30,7 @@ export function ProcessingProvider({ children }: { children: React.ReactNode }) 
 
     const interval = setInterval(async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/status", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/status`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(taskIds),

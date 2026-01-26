@@ -50,7 +50,7 @@ export default function DocumentsPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:8000/api/search?${params}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/search?${params}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },

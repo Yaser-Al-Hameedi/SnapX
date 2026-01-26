@@ -57,7 +57,7 @@ export default function UploadCard() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await fetch("http://localhost:8000/api/upload", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
