@@ -1,11 +1,11 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Header
 from models import TaskResponse
 import os
-import base64
+import uuid
 import logging
 from routes.tasks import process_document_task
 from celery_app import celery_app
-from database import supabase, get_supabase_client
+from database import supabase, get_supabase_client, upload_file_to_storage
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -50,21 +50,21 @@ async def upload_document(
                 detail=f"Upload limit reached. You have {current_count}/{USER_UPLOAD_LIMIT} documents."
             )
 
-    # Read file bytes and encode as base64 for Celery task
+    # Read file bytes and upload to "pending" folder in storage
     try:
         file_bytes = await file.read()
-        file_data_b64 = base64.b64encode(file_bytes).decode('utf-8')
+        pending_path = f"pending/{uuid.uuid4()}_{file.filename}"
+        upload_file_to_storage(pending_path, file_bytes, file.content_type)
+        logger.info(f"[DEBUG] Uploaded to pending storage: {pending_path}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
-    # Pass file data (base64) to Celery task instead of file paths
-    logger.info(f"[DEBUG] About to send task for file: {file.filename}")
-    logger.info(f"[DEBUG] Celery broker URL: {celery_app.conf.broker_url[:30]}...")
+    # Pass only the storage path to Celery (not the file data)
+    logger.info(f"[DEBUG] Sending task with storage path: {pending_path}")
 
     try:
-        result = process_document_task.delay(file_data_b64, file.filename, file.content_type, user_id)
+        result = process_document_task.delay(pending_path, file.filename, file.content_type, user_id)
         logger.info(f"[DEBUG] Task sent successfully! Task ID: {result.id}")
-        logger.info(f"[DEBUG] Task state: {result.state}")
     except Exception as e:
         logger.error(f"[DEBUG] Failed to send task: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to queue task: {str(e)}")

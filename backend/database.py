@@ -31,3 +31,23 @@ def upload_file_to_storage(file_path: str, file_data: bytes, content_type: str) 
         return public_url
     except Exception as e:
         raise Exception(f"Failed to upload file to storage: {str(e)}")
+
+def download_file_from_storage(file_path: str) -> bytes:
+    """
+    Download file from Supabase storage
+    Returns the file bytes
+    """
+    try:
+        response = supabase.storage.from_(STORAGE_BUCKET).download(file_path)
+        return response
+    except Exception as e:
+        raise Exception(f"Failed to download file from storage: {str(e)}")
+
+def delete_file_from_storage(file_path: str) -> None:
+    """
+    Delete file from Supabase storage
+    """
+    try:
+        supabase.storage.from_(STORAGE_BUCKET).remove([file_path])
+    except Exception as e:
+        raise Exception(f"Failed to delete file from storage: {str(e)}")

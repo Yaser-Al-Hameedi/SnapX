@@ -1,9 +1,8 @@
 from celery_app import celery_app
-from database import get_supabase_client, upload_file_to_storage
+from database import get_supabase_client, upload_file_to_storage, download_file_from_storage, delete_file_from_storage
 from models import DocumentResponse
 import os
 import re
-import base64
 from datetime import datetime
 from services import ocr_service
 from services import ai_service
@@ -16,13 +15,16 @@ TEMP_FOLDER = "temp_uploads"
 os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 @celery_app.task(name='process_document_task')
-def process_document_task(file_data_b64: str, original_filename: str, content_type: str, user_id: str):
+def process_document_task(pending_storage_path: str, original_filename: str, content_type: str, user_id: str):
     temp_file_path = None
     try:
         start_time = time.time()
 
-        # Decode base64 file data and save to temp file on worker
-        file_bytes = base64.b64decode(file_data_b64)
+        # Download file from pending storage
+        print(f"[{original_filename}] Downloading from storage...")
+        file_bytes = download_file_from_storage(pending_storage_path)
+
+        # Save to temp file for OCR processing
         unique_id = str(uuid.uuid4())
         temp_file_path = os.path.join(TEMP_FOLDER, f"{unique_id}_{original_filename}")
 
@@ -72,10 +74,16 @@ def process_document_task(file_data_b64: str, original_filename: str, content_ty
 
         saved_document = result.data[0]
 
-        # Cleanup temp file
+        # Cleanup: delete temp file and pending storage file
         try:
             if temp_file_path and os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
+        except Exception:
+            pass
+
+        try:
+            delete_file_from_storage(pending_storage_path)
+            print(f"[{original_filename}] Deleted pending file from storage")
         except Exception:
             pass
 
@@ -83,7 +91,7 @@ def process_document_task(file_data_b64: str, original_filename: str, content_ty
         return saved_document
 
     except Exception as e:
-        # Cleanup temp file on failure
+        # Cleanup temp file on failure (keep pending file for debugging)
         try:
             if temp_file_path and os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
