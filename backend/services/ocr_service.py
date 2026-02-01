@@ -1,8 +1,10 @@
 import os
 import json
 import base64
+import io
 from google.cloud import vision
 from google.oauth2 import service_account
+from pdf2image import convert_from_path
 
 def get_vision_client():
     """Initialize Google Cloud Vision client from environment variable"""
@@ -22,23 +24,39 @@ def extract_text(file_path: str) -> str:
     """Extract text from image or PDF using Google Cloud Vision API"""
     client = get_vision_client()
 
-    with open(file_path, 'rb') as f:
-        content = f.read()
-
     if file_path.lower().endswith('.pdf'):
-        # For PDFs, use document text detection
-        image = vision.Image(content=content)
-        response = client.document_text_detection(image=image)
+        # Convert PDF pages to images, then OCR each
+        images = convert_from_path(file_path)
+        all_text = []
+
+        for image in images:
+            # Convert PIL image to bytes
+            img_byte_arr = io.BytesIO()
+            image.save(img_byte_arr, format='PNG')
+            content = img_byte_arr.getvalue()
+
+            vision_image = vision.Image(content=content)
+            response = client.text_detection(image=vision_image)
+
+            if response.error.message:
+                raise Exception(f"Vision API error: {response.error.message}")
+
+            if response.text_annotations:
+                all_text.append(response.text_annotations[0].description)
+
+        return "\n".join(all_text)
     else:
-        # For images, use text detection
+        # For images, read and send directly
+        with open(file_path, 'rb') as f:
+            content = f.read()
+
         image = vision.Image(content=content)
         response = client.text_detection(image=image)
 
-    if response.error.message:
-        raise Exception(f"Vision API error: {response.error.message}")
+        if response.error.message:
+            raise Exception(f"Vision API error: {response.error.message}")
 
-    # Get full text from response
-    if response.text_annotations:
-        return response.text_annotations[0].description
+        if response.text_annotations:
+            return response.text_annotations[0].description
 
-    return ""
+        return ""
