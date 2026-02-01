@@ -111,7 +111,6 @@ export default function UploadCard() {
           ref={inputRef}
           type="file"
           accept="image/*,application/pdf"
-          capture="environment"
           className="hidden"
           onChange={onChange}
           multiple
