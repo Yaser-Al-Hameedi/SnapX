@@ -10,7 +10,6 @@ export default function UploadCard() {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { startProcessing } = useProcessing();
 
@@ -30,7 +29,6 @@ export default function UploadCard() {
     const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
     const combinedPreviews = [...previews, ...newPreviews] // Making sure all files preview
     setPreviews(combinedPreviews);
-    setSuccess(false);
     }else{
       setErrorMessage("Maximum 10 files allowed")
     }
@@ -52,6 +50,9 @@ export default function UploadCard() {
         return;
       }
 
+      // Track task IDs as they complete
+      const taskIds: string[] = [];
+
       // Create an array of upload promises (one for each file)
       const uploadPromises = files.map(async (file) => {
         const formData = new FormData();
@@ -70,17 +71,17 @@ export default function UploadCard() {
           throw new Error(errorData.detail || `Failed to upload ${file.name}`);
         }
 
-        return response.json();
+        const result = await response.json();
+
+        // Add task ID and update processing status immediately
+        taskIds.push(result.task_id);
+        startProcessing([...taskIds]);
+
+        return result;
       });
 
       // Wait for ALL uploads to complete in parallel
-      const results = await Promise.all(uploadPromises);
-
-      // Extract task_ids from results and start global processing
-      const ids = results.map(result => result.task_id);
-      startProcessing(ids);
-
-      setSuccess(true);
+      await Promise.all(uploadPromises);
     } catch (error) {
       const err = error as Error;
       setErrorMessage(err.message || "Upload failed");
@@ -144,7 +145,6 @@ export default function UploadCard() {
           >
             {uploading ? "Uploading..." : `Upload ${files.length} Document(s)`}
           </button>
-          {success && <p className="text-green-600 mt-2">✓ Uploaded!</p>}
         </div>
       )}
     </>
