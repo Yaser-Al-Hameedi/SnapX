@@ -82,6 +82,10 @@ export default function UploadCard() {
 
       // Wait for ALL uploads to complete in parallel
       await Promise.all(uploadPromises);
+
+      // Clear files and previews after successful upload
+      setFiles([]);
+      setPreviews([]);
     } catch (error) {
       const err = error as Error;
       setErrorMessage(err.message || "Upload failed");
