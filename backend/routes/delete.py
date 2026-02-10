@@ -10,7 +10,7 @@ async def delete_file(uuid, file_path):
 
     try:
         delete_file_from_storage(file_path)
-        supabase_client.table("documents").delete().eq("uuid", uuid).execute()
+        supabase_client.table("documents").delete().eq("id", uuid).execute()
         return {"message": "Deleted"}
     except Exception:
         raise HTTPException(status_code=401, detail = "Unable to delete file")
