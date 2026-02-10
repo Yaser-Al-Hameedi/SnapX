@@ -6,7 +6,7 @@ router = APIRouter()
 @router.delete("/delete")
 async def delete_file(uuid, file_path):
     supabase_client = get_supabase_client()
-    file_path = file_path.split("/documents/")[1]
+    file_path = file_path.split("/documents/")[1].split("?")[0]  # Remove query string
 
     try:
         delete_file_from_storage(file_path)
