@@ -208,9 +208,9 @@ export default function DocumentsPage() {
             >
               <button
                 onClick={(e) => handleDelete(e, doc)}
-                className="absolute top-2 left-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-sm font-bold hover:bg-red-600"
+                className="absolute top-3 right-3 w-5 h-5 bg-slate-200 text-slate-600 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-slate-300 z-10 cursor-pointer"
               >
-                ×
+                <span className="w-3 h-0.5 bg-slate-600"></span>
               </button>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
