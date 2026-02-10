@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import upload, search, update, status
+from routes import upload, search, update, status, delete
 
 app = FastAPI(title="SnapX API", version="1.0.0")
 
@@ -20,6 +20,7 @@ app.include_router(upload.router, prefix="/api", tags=["upload"])
 app.include_router(search.router, prefix="/api", tags=["search"])
 app.include_router(update.router, prefix="/api", tags=["update"])
 app.include_router(status.router, prefix="/api", tags=["status"])
+app.include_router(delete.router, prefix="/api", tags=["delete"])
 
 @app.get("/test-supabase")
 def test_supabase():

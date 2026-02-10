@@ -70,6 +70,37 @@ export default function DocumentsPage() {
     );
   }
 
+  async function handleDelete(e: React.MouseEvent, doc: Document) {
+    e.stopPropagation(); // Prevent opening the modal
+
+    try {
+      const { supabase } = await import("@/lib/supabase");
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        console.error("No auth token");
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/delete?uuid=${doc.id}&file_path=${encodeURIComponent(doc.file_path)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setDocuments(docs => docs.filter(d => d.id !== doc.id));
+      }
+    } catch (error) {
+      console.error("Error deleting document:", error);
+    }
+  }
+
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -170,11 +201,17 @@ export default function DocumentsPage() {
         <div className="space-y-4">
           <p className="text-sm text-slate-600">{documents.length} document(s) found</p>
           {documents.map((doc) => (
-            <div 
-              key={doc.id} 
-              className="card p-6 cursor-pointer hover:shadow-lg transition"
+            <div
+              key={doc.id}
+              className="card p-6 cursor-pointer hover:shadow-lg transition relative group"
               onClick={() => setSelectedDoc(doc)}
             >
+              <button
+                onClick={(e) => handleDelete(e, doc)}
+                className="absolute top-2 left-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-sm font-bold hover:bg-red-600"
+              >
+                ×
+              </button>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-sm text-slate-500">Vendor</p>
