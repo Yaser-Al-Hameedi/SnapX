@@ -32,6 +32,14 @@ interface VendorPayment {
   vendors: { name: string };
 }
 
+interface Employee {
+  id: string;
+  name: string;
+  last_name: string;
+  hourly_rate: number;
+  store_id: string;
+}
+
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
@@ -93,6 +101,13 @@ export default function StoreBookkeepingPage() {
   // Vendor payment editing
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [editPaymentForm, setEditPaymentForm] = useState({ amount: "" as number | string, payment_date: "" });
+
+  // Employees
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [addingEmployee, setAddingEmployee] = useState(false);
+  const [employeeForm, setEmployeeForm] = useState({ name: "", last_name: "", hourly_rate: "" as number | string });
+  const [settingPin, setSettingPin] = useState(false);
+  const [kioskPin, setKioskPin] = useState("");
 
   async function getToken() {
     const { supabase } = await import("@/lib/supabase");
@@ -384,6 +399,51 @@ export default function StoreBookkeepingPage() {
     fetchLotteryEntries();
   }
 
+  async function fetchEmployees() {
+    const token = await getToken();
+    if (!token) return;
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/employees/${store_id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setEmployees(Array.isArray(data) ? data : []);
+  }
+
+  async function handleAddEmployee() {
+    if (!employeeForm.name || !employeeForm.last_name || !employeeForm.hourly_rate) return;
+    const token = await getToken();
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/employees`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        store_id,
+        name: employeeForm.name,
+        last_name: employeeForm.last_name,
+        hourly_rate: parseFloat(employeeForm.hourly_rate as string),
+      }),
+    });
+    setEmployeeForm({ name: "", last_name: "", hourly_rate: "" });
+    setAddingEmployee(false);
+    fetchEmployees();
+  }
+
+  async function handleDeleteEmployee(id: string) {
+    const token = await getToken();
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/employees?store_id=${store_id}&employee_id=${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchEmployees();
+  }
+
+  function handleSavePin() {
+    if (kioskPin.trim()) {
+      localStorage.setItem(`kiosk_pin_${store_id}`, kioskPin.trim());
+    }
+    setSettingPin(false);
+    setKioskPin("");
+  }
+
   async function handleUpdatePayment(id: string) {
     const token = await getToken();
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor-payments/${id}`, {
@@ -398,7 +458,7 @@ export default function StoreBookkeepingPage() {
     fetchVendorPayments();
   }
 
-  useEffect(() => { fetchStoreName(); fetchVendors(); }, [store_id]);
+  useEffect(() => { fetchStoreName(); fetchVendors(); fetchEmployees(); }, [store_id]);
   useEffect(() => { fetchEntries(); fetchVendorPayments(); fetchLotteryEntries(); }, [selectedMonth, selectedYear, store_id]);
 
   const sorted = [...entries].sort((a, b) => a.entry_date.localeCompare(b.entry_date));
@@ -835,6 +895,86 @@ export default function StoreBookkeepingPage() {
             </div>
           ) : (
             <p className="text-sm text-slate-400 print:hidden">No lottery entries this month.</p>
+          )}
+        </div>
+
+        {/* Employees */}
+        <div className="space-y-4 print:hidden">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold">Employees</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Manage employees and kiosk access</p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => router.push(`/kiosk/${store_id}`)} className="text-sm text-slate-500 hover:text-slate-900 cursor-pointer transition-colors">
+                Open Kiosk →
+              </button>
+              <button onClick={() => setSettingPin(!settingPin)} className="text-sm text-slate-500 hover:text-slate-900 cursor-pointer transition-colors">
+                Set PIN
+              </button>
+              <button onClick={() => setAddingEmployee(!addingEmployee)} className="btn btn-primary text-sm">
+                {addingEmployee ? "Cancel" : "+ Add Employee"}
+              </button>
+            </div>
+          </div>
+
+          {settingPin && (
+            <div className="card p-4 flex gap-3 items-end">
+              <div className="flex-1">
+                <label className="text-sm text-slate-600 block mb-1">Kiosk PIN</label>
+                <input type="password" value={kioskPin} onChange={(e) => setKioskPin(e.target.value)} className="input" placeholder="Set a PIN for kiosk mode..." />
+              </div>
+              <button onClick={handleSavePin} className="btn btn-primary">Save PIN</button>
+            </div>
+          )}
+
+          {addingEmployee && (
+            <div className="card p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-sm text-slate-600 block mb-1">First Name</label>
+                  <input type="text" value={employeeForm.name} onChange={(e) => setEmployeeForm(f => ({ ...f, name: e.target.value }))} className="input" />
+                </div>
+                <div>
+                  <label className="text-sm text-slate-600 block mb-1">Last Name</label>
+                  <input type="text" value={employeeForm.last_name} onChange={(e) => setEmployeeForm(f => ({ ...f, last_name: e.target.value }))} className="input" />
+                </div>
+                <div>
+                  <label className="text-sm text-slate-600 block mb-1">Hourly Rate ($)</label>
+                  <input type="number" value={employeeForm.hourly_rate} onChange={(e) => setEmployeeForm(f => ({ ...f, hourly_rate: e.target.value }))} className="input" />
+                </div>
+                <div className="sm:col-span-3">
+                  <button onClick={handleAddEmployee} className="btn btn-primary">Save Employee</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {employees.length > 0 ? (
+            <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-slate-500 bg-slate-50">
+                    <th className="py-2 px-4 font-medium">Name</th>
+                    <th className="py-2 px-4 font-medium">Hourly Rate</th>
+                    <th className="py-2 px-4"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map(emp => (
+                    <tr key={emp.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="py-2 px-4">{emp.name} {emp.last_name}</td>
+                      <td className="py-2 px-4">${emp.hourly_rate.toFixed(2)}/hr</td>
+                      <td className="py-2 px-4 text-right">
+                        <button onClick={() => handleDeleteEmployee(emp.id)} className="text-red-400 hover:text-red-600 text-xs cursor-pointer">Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400">No employees added yet.</p>
           )}
         </div>
 
