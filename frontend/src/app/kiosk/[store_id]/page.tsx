@@ -24,16 +24,42 @@ async function getToken() {
   return session?.access_token;
 }
 
-function hoursWorked(clock_in: string, clock_out: string | null) {
-  if (!clock_out) return "In progress";
-  const h = (new Date(clock_out).getTime() - new Date(clock_in).getTime()) / 3_600_000;
-  return `${h.toFixed(2)}h`;
+function hoursWorked(clock_in: string, clock_out: string | null): number | null {
+  if (!clock_out) return null;
+  return (new Date(clock_out).getTime() - new Date(clock_in).getTime()) / 3_600_000;
 }
 
-function wagesEarned(clock_in: string, clock_out: string | null, rate: number) {
-  if (!clock_out) return "—";
-  const h = (new Date(clock_out).getTime() - new Date(clock_in).getTime()) / 3_600_000;
-  return `$${(h * rate).toFixed(2)}`;
+function fmt(dt: string) {
+  return new Date(dt).toLocaleString([], { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+interface WeekGroup { label: string; shifts: Shift[] }
+
+function groupByWeek(shifts: Shift[]): WeekGroup[] {
+  const map = new Map<string, Shift[]>();
+  for (const s of shifts) {
+    const d = new Date(s.clock_in);
+    const day = d.getDay();
+    const toMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + toMonday);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const key = monday.toISOString();
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(s);
+  }
+  return Array.from(map.entries())
+    .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+    .map(([key, shifts]) => {
+      const monday = new Date(key);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+      const label = `${monday.toLocaleDateString([], opts)} – ${sunday.toLocaleDateString([], opts)}`;
+      return { label, shifts };
+    });
 }
 
 export default function KioskPage() {
@@ -68,7 +94,10 @@ export default function KioskPage() {
       { headers: { Authorization: `Bearer ${token}` } }
     );
     const data = await res.json();
-    setShifts(Array.isArray(data) ? data : []);
+    const sorted = Array.isArray(data)
+      ? [...data].sort((a, b) => new Date(b.clock_in).getTime() - new Date(a.clock_in).getTime())
+      : [];
+    setShifts(sorted);
   }
 
   async function handleLogShift() {
@@ -80,8 +109,8 @@ export default function KioskPage() {
       body: JSON.stringify({
         employee_id: selectedEmployee.id,
         store_id,
-        clock_in: shiftForm.clock_in,
-        clock_out: shiftForm.clock_out,
+        clock_in: new Date(shiftForm.clock_in).toISOString(),
+        clock_out: new Date(shiftForm.clock_out).toISOString(),
       }),
     });
     setShiftForm({ clock_in: "", clock_out: "" });
@@ -199,31 +228,53 @@ export default function KioskPage() {
             )}
 
             {shifts.length > 0 ? (
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-slate-500 bg-slate-50">
-                      <th className="py-2 px-4 font-medium">Clock In</th>
-                      <th className="py-2 px-4 font-medium">Clock Out</th>
-                      <th className="py-2 px-4 font-medium">Hours</th>
-                      <th className="py-2 px-4 font-medium">Wages</th>
-                      <th className="py-2 px-4"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shifts.map(shift => (
-                      <tr key={shift.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="py-2 px-4">{new Date(shift.clock_in).toLocaleString()}</td>
-                        <td className="py-2 px-4">{shift.clock_out ? new Date(shift.clock_out).toLocaleString() : "—"}</td>
-                        <td className="py-2 px-4">{hoursWorked(shift.clock_in, shift.clock_out)}</td>
-                        <td className="py-2 px-4">{wagesEarned(shift.clock_in, shift.clock_out, selectedEmployee.hourly_rate)}</td>
-                        <td className="py-2 px-4 text-right">
-                          <button onClick={() => handleDeleteShift(shift.id)} className="text-red-400 hover:text-red-600 text-xs cursor-pointer">Delete</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-6">
+                {groupByWeek(shifts).map(({ label, shifts: weekShifts }) => {
+                  const weekHours = weekShifts.reduce((sum, s) => sum + (hoursWorked(s.clock_in, s.clock_out) ?? 0), 0);
+                  const weekWages = weekHours * selectedEmployee.hourly_rate;
+                  return (
+                    <div key={label} className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Week of {label}</span>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b text-left text-slate-500">
+                            <th className="py-2 px-4 font-medium">Clock In</th>
+                            <th className="py-2 px-4 font-medium">Clock Out</th>
+                            <th className="py-2 px-4 font-medium">Hours</th>
+                            <th className="py-2 px-4 font-medium">Wages</th>
+                            <th className="py-2 px-4"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {weekShifts.map(shift => {
+                            const h = hoursWorked(shift.clock_in, shift.clock_out);
+                            return (
+                              <tr key={shift.id} className="border-b border-slate-100 hover:bg-slate-50">
+                                <td className="py-2 px-4">{fmt(shift.clock_in)}</td>
+                                <td className="py-2 px-4">{shift.clock_out ? fmt(shift.clock_out) : "—"}</td>
+                                <td className="py-2 px-4">{h !== null ? `${h.toFixed(2)}h` : "In progress"}</td>
+                                <td className="py-2 px-4">{h !== null ? `$${(h * selectedEmployee.hourly_rate).toFixed(2)}` : "—"}</td>
+                                <td className="py-2 px-4 text-right">
+                                  <button onClick={() => handleDeleteShift(shift.id)} className="text-red-400 hover:text-red-600 text-xs cursor-pointer">Delete</button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-50 border-t border-slate-200 font-semibold">
+                            <td className="py-2 px-4 text-slate-500 text-xs uppercase tracking-wide" colSpan={2}>Weekly Total</td>
+                            <td className="py-2 px-4">{weekHours.toFixed(2)}h</td>
+                            <td className="py-2 px-4 text-green-700">${weekWages.toFixed(2)}</td>
+                            <td />
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-slate-400 text-sm">No shifts logged yet.</p>
