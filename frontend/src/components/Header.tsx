@@ -1,11 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Header() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/kiosk")) return null;
 
   async function handleSignOut() {
     await signOut();
