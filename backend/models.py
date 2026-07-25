@@ -94,3 +94,25 @@ class VendorPaymentCreate(BaseModel):
 class VendorPaymentUpdate(BaseModel):
     amount: Optional[float] = None
     payment_date: Optional[date] = None
+
+class EmployeeCreate(BaseModel):
+    store_id: str
+    name: str
+    last_name:str
+    hourly_rate: float 
+
+class EmployeeUpdate(BaseModel):
+    name: Optional[str] = None
+    last_name: Optional[str] = None
+    hourly_rate: Optional[float] = None
+
+class ShiftCreate(BaseModel):
+    clock_in: datetime
+    clock_out: datetime
+    store_id: str
+    employee_id: str
+
+class ShiftUpdate(BaseModel):
+    clock_in: Optional[datetime] = None
+    clock_out: Optional[datetime] = None
+    
