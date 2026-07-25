@@ -10,19 +10,28 @@ from pdf2image import convert_from_path
 client = anthropic.Anthropic(api_key=AI_API_KEY)
 
 
+MAX_IMAGE_PX = 1568  # Claude's recommended max dimension
+
+def _resize_image(img: Image.Image) -> Image.Image:
+    w, h = img.size
+    if max(w, h) > MAX_IMAGE_PX:
+        scale = MAX_IMAGE_PX / max(w, h)
+        img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+    return img
+
 def _encode_image_for_claude(file_path: str) -> list:
-    """Encode an image or PDF into Claude-compatible content blocks."""
     if file_path.lower().endswith(".pdf"):
         pages = convert_from_path(file_path)
         blocks = []
         for page in pages:
+            page = _resize_image(page)
             buf = io.BytesIO()
-            page.save(buf, format="PNG")
+            page.save(buf, format="JPEG", quality=85)
             blocks.append({
                 "type": "image",
                 "source": {
                     "type": "base64",
-                    "media_type": "image/png",
+                    "media_type": "image/jpeg",
                     "data": base64.standard_b64encode(buf.getvalue()).decode("utf-8"),
                 },
             })
@@ -31,8 +40,9 @@ def _encode_image_for_claude(file_path: str) -> list:
         with Image.open(file_path) as img:
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
+            img = _resize_image(img)
             buf = io.BytesIO()
-            img.save(buf, format="JPEG")
+            img.save(buf, format="JPEG", quality=85)
         return [{
             "type": "image",
             "source": {
@@ -129,7 +139,9 @@ Return ONLY valid JSON, no explanation:
         max_tokens=512,
         messages=[{"role": "user", "content": content}]
     )
-    return parse_json(message.content[0].text)
+    raw = message.content[0].text
+    print(f"[extract_report_fields_from_image] Claude response: {raw}")
+    return parse_json(raw)
 
 def extract_report_fields(text: str) -> dict:
     prompt = f"""
