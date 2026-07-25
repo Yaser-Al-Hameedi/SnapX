@@ -56,12 +56,20 @@ def _encode_image_for_claude(file_path: str) -> list:
         }]
 
 def parse_json(text: str) -> dict:
+    if not text:
+        return {}
     text = text.strip()
-    # Strip markdown code blocks if present
     match = re.search(r'\{.*\}', text, re.DOTALL)
     if match:
         return json.loads(match.group())
     return json.loads(text)
+
+
+def _get_text(message) -> str:
+    for block in message.content:
+        if hasattr(block, "text") and block.text:
+            return block.text
+    return ""
 
 def extract_fields(text: str) -> dict:
     prompt = f"""
@@ -86,7 +94,7 @@ def extract_fields(text: str) -> dict:
         messages=[{"role": "user", "content": prompt}]
     )
 
-    return parse_json(message.content[0].text)
+    return parse_json(_get_text(message))
 
 
 def extract_fields_from_image(file_path: str) -> dict:
@@ -110,7 +118,7 @@ Return ONLY valid JSON, no explanation:
         max_tokens=512,
         messages=[{"role": "user", "content": content}]
     )
-    return parse_json(message.content[0].text)
+    return parse_json(_get_text(message))
 
 
 def extract_report_fields_from_image(file_path: str) -> dict:
@@ -144,7 +152,7 @@ Return ONLY valid JSON, no explanation, no markdown:
         max_tokens=512,
         messages=[{"role": "user", "content": content}]
     )
-    raw = message.content[0].text
+    raw = _get_text(message)
     print(f"[extract_report_fields_from_image] Claude response: {raw}")
     return parse_json(raw)
 
@@ -179,4 +187,4 @@ def extract_report_fields(text: str) -> dict:
         messages=[{"role": "user", "content": prompt}]
     )
 
-    return parse_json(message.content[0].text)
+    return parse_json(_get_text(message))
