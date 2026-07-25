@@ -116,29 +116,31 @@ Return ONLY valid JSON, no explanation:
 def extract_report_fields_from_image(file_path: str) -> dict:
     """Extract daily report fields directly from an image using Claude vision."""
     images = _encode_image_for_claude(file_path)
-    prompt = """You are extracting daily financial data from a gas station daily report image.
+    prompt = """This is a photo of a handwritten daily financial summary sheet from a gas station convenience store. An employee manually writes dollar amounts onto a pre-printed paper form each day by copying values from a POS receipt.
 
-Extract the following fields:
+Extract exactly these four fields:
 
-- entry_date: The date of this daily report. Return in YYYY-MM-DD format. If not found, return null.
-- income: Find "Store Sales" or "Grocery" value, then find "EBT" or "Food Stamps" or "SNAP" value, and add them together. Do NOT include "Gas Sales", "Fuel", or any combined total.
-- payouts: Look for "Payout", "Payouts"
-- tax: Look for "Sales Tax", "Tax"
+1. entry_date — Look for a written date on the form (could be at the top, in a "Date:" field, or in a corner). It will look like 7/25/26, 7-25-2026, July 25, etc. Convert to YYYY-MM-DD. If the year is 2 digits (like "26"), treat it as 20XX (so "26" → 2026). The year must be between 2024 and 2027. If what you read falls outside that range, you have misread it — return null.
 
-STRICT RULES:
-- Return numbers only for numeric fields. No $ signs, no commas.
-- For income, only use the specific "Store Sales"/"Grocery" line and "EBT" line. Never use a combined total.
-- If EBT is zero or not present, income = store sales only.
-- If a category label is present but has NO value next to it, return 0.
-- If a numeric category is not found at all, return 0.
-- Never make up or estimate values. Only return what is explicitly visible.
+2. income — Find the label "Store Sales" or "Grocery" and read the handwritten dollar amount next to it. Then find "EBT", "Food Stamps", or "SNAP" and read that amount. Add those two numbers together. Do NOT use "Gas", "Fuel", "Total", or any combined subtotal line.
 
-Return ONLY valid JSON, no explanation:
+3. payouts — Find the label "Payout" or "Payouts" and read the handwritten number next to it.
+
+4. tax — Find the label "Tax" or "Sales Tax" and read the handwritten number next to it.
+
+STRICT RULES — follow these exactly:
+- If a field's box or line is blank, empty, or has nothing written in it: return 0. Do not guess. Do not use a nearby number.
+- If you cannot find the label at all: return 0.
+- Never invent, estimate, or carry over numbers from other fields.
+- Return plain numbers only — no $, no commas. Example: 1234.56 not $1,234.56.
+- If EBT is blank or missing, income = store sales amount only.
+
+Return ONLY valid JSON, no explanation, no markdown:
 {"entry_date": "YYYY-MM-DD", "income": 0.0, "payouts": 0.0, "tax": 0.0}"""
 
     content = images + [{"type": "text", "text": prompt}]
     message = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model="claude-sonnet-5",
         max_tokens=512,
         messages=[{"role": "user", "content": content}]
     )
