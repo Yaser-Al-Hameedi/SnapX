@@ -72,6 +72,9 @@ export default function KioskPage() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [addingShift, setAddingShift] = useState(false);
   const [shiftForm, setShiftForm] = useState({ clock_in: "", clock_out: "" });
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  const maxDatetime = now.toISOString().slice(0, 16);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
@@ -207,6 +210,7 @@ export default function KioskPage() {
                     <input
                       type="datetime-local"
                       value={shiftForm.clock_in}
+                      max={maxDatetime}
                       onChange={(e) => setShiftForm(f => ({ ...f, clock_in: e.target.value }))}
                       className="input"
                     />
@@ -216,6 +220,7 @@ export default function KioskPage() {
                     <input
                       type="datetime-local"
                       value={shiftForm.clock_out}
+                      max={maxDatetime}
                       onChange={(e) => setShiftForm(f => ({ ...f, clock_out: e.target.value }))}
                       className="input"
                     />
