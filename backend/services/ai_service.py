@@ -4,7 +4,7 @@ import json
 import re
 import base64
 import io
-from PIL import Image
+from PIL import Image, ImageOps
 from pdf2image import convert_from_path
 
 client = anthropic.Anthropic(api_key=AI_API_KEY)
@@ -38,11 +38,14 @@ def _encode_image_for_claude(file_path: str) -> list:
         return blocks
     else:
         with Image.open(file_path) as img:
+            img = ImageOps.exif_transpose(img)  # apply EXIF rotation (iPhone photos)
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
             img = _resize_image(img)
+            print(f"[encode_image] size={img.size} mode={img.mode}")
             buf = io.BytesIO()
             img.save(buf, format="JPEG", quality=85)
+            print(f"[encode_image] jpeg bytes={len(buf.getvalue())}")
         return [{
             "type": "image",
             "source": {
