@@ -483,7 +483,7 @@ export default function StoreBookkeepingPage() {
 
   const lotteryTotal = lotteryEntries.reduce((sum, e) => sum + e.amount, 0);
   const totalPayout = totals.payout + vendorPayoutTotal;
-  const profit = totals.income + lotteryTotal - totalPayout;
+  const profit = totals.income + totals.tax + lotteryTotal - totalPayout;
   const years = [now.getFullYear() - 2, now.getFullYear() - 1, now.getFullYear()];
 
   // Group vendor payments by vendor name

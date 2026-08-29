@@ -205,7 +205,7 @@ async def store_summaries(month: int, year: int, authorization: str = Header(Non
         tax = sum(e["tax"] for e in bookkeeping_entries.data)
         vendor_total = sum(p["amount"] for p in vendor_payments.data)
         lottery_total = sum(l["amount"] for l in lottery.data)
-        profit = income + lottery_total - payouts - vendor_total
+        profit = income + tax + lottery_total - payouts - vendor_total
 
         store_summaries.append({
             "store_id": store["id"],
